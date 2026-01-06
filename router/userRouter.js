@@ -4,7 +4,7 @@ const userRouter = express.Router();
 const userController = require('../controller/userController');
 const isAuth = require('../middleware/isAuth');
 
-userRouter.get('/', userController.getIndex);
+userRouter.get('/',isAuth , userController.getIndex);
 // userRouter.get('/deshboard', userController.getdeshboard);
 userRouter.get('/add-entry',isAuth , userController.getAddEntry);
 userRouter.post('/add-entry', isAuth , userController.postAddEntry);
