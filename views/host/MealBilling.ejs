@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashBook || Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div id="app">
+        <%- include('../partials/header') %>
+        <!-- Main Content -->
+        <main class="main-content">
+            <h2>🥦 Billing Dashboard</h2>
+
+            <h2>🍽️ Meal Billing Summary</h2>
+
+            <p><strong>Total Expense:</strong> ₹ <%= expenseTotal %></p>
+            <p><strong>Total Food Count:</strong> <%= grandTotalFood %></p>
+            <p><strong>Per Meal Price:</strong> ₹ <%= perMealPrice %></p>
+
+            <hr>
+            <div >
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Total Food</th>
+                                <th>Payable Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            <% billingUsers.forEach(user => { %>
+                                <tr>
+                                    <td><%= user.name %></td>
+                                    <td><%= user.userTotalFood %></td>
+                                    <td>₹ <%= user.payableAmount %></td>
+                                </tr>
+                            <% }) %>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>
+
+
+

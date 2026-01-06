@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create OTP | CashBook</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="auth-body">
+
+<div class="auth-card">
+    <h1>CashBook</h1>
+    <p class="subtitle">Generate OTP for Registration</p>
+
+    <form action="/generate-otp" method="POST">
+        <input
+            type="email"
+            name="email"
+            placeholder="Enter Email"
+            required
+        >
+
+        <button type="submit">Generate OTP</button>
+    </form>
+
+    <% if (otp) { %>
+        <div style="margin-top:20px;">
+            <p><strong>Your OTP:</strong></p>
+            <h2 style="letter-spacing:3px;"><%= otp %></h2>
+            <p style="font-size:13px;color:#555;">
+                This OTP is valid for 5 minutes
+            </p>
+        </div>
+    <% } %>
+
+    <p class="switch-text">
+        Already have OTP?
+        <a href="/register">Go to Register</a>
+    </p>
+</div>
+
+</body>
+</html>

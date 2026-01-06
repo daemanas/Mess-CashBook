@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashBook || Entry</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div id="app">
+        <%- include('../partials/header') %>
+
+        <main class="main-content">
+            <div id="add-entry-page" class="page">
+                <h2>Add Member Money</h2>
+
+                <div class="card">
+                    <form id="add-entry-form" action="/add-entry" method="POST">
+
+                        <!-- Quick Action Buttons -->
+                        <div class="dashboard-actions">
+                            <a href="/add-entry" class="action-btn income-btn">
+                                ➕ Add Member
+                            </a>
+                            <a href="/add-expense" class="action-btn expense-btn">
+                                ➖ Add Expense
+                            </a>
+                            <a href="/add-Meal" class="action-btn income-btn">
+                                ➕ Add Meal
+                            </a>
+                        </div>
+
+                        <!-- NAME FIELD (SMART LOGIC) -->
+                        <div class="form-group">
+                            <label for="entry_title">Name</label>
+
+                            <% if (title) { %>
+                                <!-- 🔵 Member card থেকে এলে -->
+                                <input
+                                    type="text"
+                                    class="entry_title"
+                                    id="entry_title"
+                                    name="entry_title"
+                                    value="<%= title %>"
+                                    readonly
+                                    required
+                                >
+                            <% } else { %>
+                                <!-- 🟢 Direct new entry -->
+                                <input
+                                    type="text"
+                                    class="entry_title"
+                                    id="entry_title"
+                                    name="entry_title"
+                                    placeholder="Enter Name"
+                                    required
+                                >
+                            <% } %>
+                        </div>
+
+                        <!-- AMOUNT -->
+                        <div class="form-group">
+                            <label for="entry_amount">Amount</label>
+                            <input
+                                type="number"
+                                class="entry_amount"
+                                id="entry_amount"
+                                name="entry_amount"
+                                placeholder="Enter amount"
+                                required
+                            >
+                        </div>
+
+                        <!-- DATE -->
+                        <div class="form-group">
+                            <label for="entry_date">Date</label>
+                            <input
+                                type="date"
+                                class="entry_date"
+                                id="entry_date"
+                                name="entry_date"
+                                required
+                            >
+                        </div>
+
+                        <!-- BUTTONS -->
+                        <div class="d-flex" style="gap: 1rem;">
+                            <button type="submit" class="btn btn-success">
+                                Save Entry
+                            </button>
+                            <button type="reset" class="btn btn-outline">
+                                Reset
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

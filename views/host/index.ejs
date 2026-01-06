@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashBook || Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div id="app">
+        <%- include('../partials/header') %>
+        <!-- Main Content -->
+        <main class="main-content">
+            
+                
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page">
+                <h2>Dashboard</h2>
+                <div class="dashboard-cards">
+                    <div class="dashboard-card income">
+                        <h3> Total mess Fund</h3>
+                        <div class="card-value text-success">₹<%= incomeTotal %></div>
+                        <p>+12% from yesterday</p>
+                    </div>
+                    <div class="dashboard-card expense">
+                        <h3>Total expenses</h3>
+                        <div class="card-value text-danger"> ₹<%= expenseTotal %></div>
+                        <p>-5% from yesterday</p>
+                    </div>
+                    <div class="dashboard-card balance">
+                        <h3>Total Avl Balance</h3>
+                        <div class="card-value"> ₹<%= availableBalance %></div>
+                        <p>All accounts</p>
+                    </div>
+                    <div class="dashboard-card expense">
+                        <h3>Pre Meal Price</h3>
+                        <div class="card-value text-danger"> ₹<%= perMealPrice %></div>
+                        <p>-5% from yesterday</p>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Weekly Summary</h3>
+                    <div class="chart">
+                        <div class="chart-bar">
+                            <div class="bar" style="height: 70%;">
+                                <div class="bar-value"> ₹300</div>
+                                <div class="bar-label">Mon</div>
+                            </div>
+                            <div class="bar" style="height: 50%;">
+                                <div class="bar-value"> ₹500</div>
+                                <div class="bar-label">Tue</div>
+                            </div>
+                            <div class="bar" style="height: 90%;">
+                                <div class="bar-value"> ₹900</div>
+                                <div class="bar-label">Wed</div>
+                            </div>
+                            <div class="bar" style="height: 60%;">
+                                <div class="bar-value"> ₹600</div>
+                                <div class="bar-label">Thu</div>
+                            </div>
+                            <div class="bar" style="height: 80%;">
+                                <div class="bar-value"> ₹800</div>
+                                <div class="bar-label">Fri</div>
+                            </div>
+                            <div class="bar" style="height: 40%;">
+                                <div class="bar-value"> ₹400</div>
+                                <div class="bar-label">Sat</div>
+                            </div>
+                            <div class="bar" style="height: 30%;">
+                                <div class="bar-value"> ₹300</div>
+                                <div class="bar-label">Sun</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Transactions</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2023-05-15</td>
+                                    <td>Grocery Shopping</td>
+                                    <td>Food</td>
+                                    <td> ₹85.50</td>
+                                    <td><span class="badge badge-expense">Expense</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2023-05-14</td>
+                                    <td>Freelance Payment</td>
+                                    <td>Income</td>
+                                    <td> ₹1,200.00</td>
+                                    <td><span class="badge badge-income">Income</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2023-05-13</td>
+                                    <td>Electricity Bill</td>
+                                    <td>Utilities</td>
+                                    <td> ₹120.75</td>
+                                    <td><span class="badge badge-expense">Expense</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2023-05-12</td>
+                                    <td>Online Course</td>
+                                    <td>Education</td>
+                                    <td> ₹59.99</td>
+                                    <td><span class="badge badge-expense">Expense</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2023-05-10</td>
+                                    <td>Stock Dividend</td>
+                                    <td>Investment</td>
+                                    <td> ₹45.25</td>
+                                    <td><span class="badge badge-income">Income</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>

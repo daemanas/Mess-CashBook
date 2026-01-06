@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashBook || Add Meal</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div id="app">
+        <%- include('../partials/header') %>
+
+        <main class="main-content">
+            <div id="add-entry-page" class="page">
+                <h2>Add Meal</h2>
+
+                <div class="card">
+                    <form action="/add-Meal" method="POST">
+
+                        <!-- Action Buttons -->
+                        <div class="dashboard-actions">
+                            <a href="/add-entry" class="action-btn income-btn">
+                                ➕ Add Member
+                            </a>
+                            <a href="/add-expense" class="action-btn expense-btn">
+                                ➖ Add Expense
+                            </a>
+                            <a href="/add-Meal" class="action-btn income-btn">
+                                ➕ Add Meal
+                            </a>
+                        </div>
+
+                        <!-- NAME FIELD (SMART LOGIC) -->
+                        <div class="form-group">
+                            <label>Name</label>
+
+                            <% if (name) { %>
+                                <!-- 🔵 Member card থেকে এলে -->
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value="<%= name %>"
+                                    readonly
+                                    required
+                                >
+                            <% } else { %>
+                                <!-- 🟢 Direct add -->
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder="Enter Name"
+                                    required
+                                >
+                            <% } %>
+                        </div>
+
+                        <!-- MEAL COUNT -->
+                        <div class="form-group">
+                            <label>Meal Count</label>
+                            <input
+                                type="number"
+                                name="food_count"
+                                placeholder="Enter Meal Count"
+                                required
+                            >
+                        </div>
+
+                        <!-- BUTTONS -->
+                        <div class="d-flex" style="gap: 1rem;">
+                            <button type="submit" class="btn btn-success">
+                                Save Meal
+                            </button>
+                            <button type="reset" class="btn btn-outline">
+                                Reset
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

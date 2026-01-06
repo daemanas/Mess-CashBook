@@ -1,0 +1,169 @@
+
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="container d-flex justify-between align-center">
+                <div class="d-flex align-center">
+                    <button class="menu-toggle">☰</button>
+                    <div class="logo">CashBook</div>
+                </div>
+                <div class="user-avatar">MA</div>
+            </div>
+        </nav>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+    <ul class="sidebar-menu">
+
+        <li>
+            <a href="/" 
+               class="menu-item <%= currentPath === '/' ? 'active' : '' %>">
+                <i>📊</i> Dashboard
+            </a>
+        </li>
+
+        <li>
+            <a href="/moneyAdded" 
+               class="menu-item <%= currentPath === '/moneyAdded' ? 'active' : '' %>">
+                <i>📊</i> Members
+            </a>
+        </li>
+
+        <li>
+            <a href="/expentionAdded" 
+               class="menu-item <%= currentPath === '/expentionAdded' ? 'active' : '' %>">
+                <i>📊</i> Vegetable Expenses
+            </a>
+        </li>
+
+        <li>
+            <a href="/AddedMeal" 
+               class="menu-item <%= currentPath === '/AddedMeal' ? 'active' : '' %>">
+                <i>📊</i> AddedMeal's
+            </a>
+        </li>
+
+        <li>
+            <a href="/getMealBilling" 
+               class="menu-item <%= currentPath === '/getMealBilling' ? 'active' : '' %>">
+                <i>📊</i> Meal Billing
+            </a>
+        </li>
+
+        <li>
+            <a href="/getFinalSettlement" 
+               class="menu-item <%= currentPath === '/getFinalSettlement' ? 'active' : '' %>">
+                <i>📊</i> Final Settlement
+            </a>
+        </li>
+
+        <li>
+            <a href="/add-entry" 
+               class="menu-item <%= currentPath === '/add-entry' || currentPath === '/add-expense' ? 'active' : '' %>">
+                <i>➕</i> Add Entry
+            </a>
+        </li>
+
+        <li>
+            <a href="/transactions" 
+               class="menu-item <%= currentPath === '/transactions' ? 'active' : '' %>">
+                <i>📋</i> Transactions
+            </a>
+        </li>
+
+        <li>
+            <a href="/reports" 
+               class="menu-item <%= currentPath === '/reports' ? 'active' : '' %>">
+                <i>📈</i> Reports
+            </a>
+        </li>
+
+        <li>
+            <a href="/setting" 
+               class="menu-item <%= currentPath === '/setting' ? 'active' : '' %>">
+                <i>⚙</i> Settings
+            </a>
+        </li>
+
+    </ul>
+</aside>
+
+<script>
+    // Menu Toggle Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuToggle = document.querySelector('.menu-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        
+        // Create overlay backdrop
+        let overlay = document.querySelector('.sidebar-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'sidebar-overlay';
+            document.body.appendChild(overlay);
+        }
+        
+        function toggleSidebar() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('active');
+                // Prevent body scroll when sidebar is open
+                if (sidebar.classList.contains('open')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+        
+        function closeSidebar() {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+        
+        if (menuToggle && sidebar) {
+            // Toggle sidebar on menu button click
+            menuToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+            
+            // Close sidebar when clicking on overlay
+            overlay.addEventListener('click', function() {
+                closeSidebar();
+            });
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickOnMenuToggle = menuToggle.contains(event.target);
+                
+                if (!isClickInsideSidebar && !isClickOnMenuToggle) {
+                    closeSidebar();
+                }
+            });
+            
+            // Close sidebar when clicking on menu item on mobile
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    closeSidebar();
+                });
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+    });
+</script>
+
+        <!-- Main Content -->
+       

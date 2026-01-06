@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashBook || Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div id="app">
+        <%- include('../partials/header') %>
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <div class="card">
+                <div class="table-container">
+                    <table >
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Food</th>
+                                <th>Paid</th>
+                                <th>Payable</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% settlement.forEach(s => { %>
+                                <tr>
+                                    <td><%= s.name %></td>
+                                    <td><%= s.foodCount %></td>
+                                    <td>₹ <%= s.paidAmount %></td>
+                                    <td>₹ <%= s.payableAmount %></td>
+
+                                    <% if (s.status === 'RECEIVE') { %>
+                                        <td style="color: green; font-weight: bold;">GET</td>
+                                        <td style="color: green;">
+                                            ₹ <%= s.finalBalance %>
+                                        </td>
+
+                                    <% } else if (s.status === 'DUE') { %>
+                                        <td style="color: red; font-weight: bold;">DUE</td>
+                                        <td style="color: red;">
+                                            ₹ <%= Math.abs(s.finalBalance) %>
+                                        </td>
+
+                                    <% } else { %>
+                                        <td style="color: gray;">CLEAR</td>
+                                        <td>₹ 0</td>
+                                    <% } %>
+
+                                </tr>
+                            <% }) %>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>
+
+
+

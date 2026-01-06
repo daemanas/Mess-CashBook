@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashBook || Report</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+        <!-- Main App (hidden initially) -->
+    <div id="app">
+        <%- include('../partials/header') %>    
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Reports Page -->
+            <div id="reports-page" class="page">
+                <h2>Reports</h2>
+                <div class="d-flex justify-between align-center mb-3">
+                    <h3>Monthly Summary</h3>
+                    <button class="btn">Export Report</button>
+                </div>
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <h3 class="text-center">Income vs Expense</h3>
+                        <div class="chart" id="pie-chart">
+                            <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                                <div style="width: 200px; height: 200px; border-radius: 50%; background: conic-gradient(var(--success) 0% 65%, var(--danger) 65% 100%);"></div>
+                            </div>
+                            <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 1rem;">
+                                <div><span style="display: inline-block; width: 12px; height: 12px; background: var(--success); border-radius: 50%; margin-right: 5px;"></span> Income (65%)</div>
+                                <div><span style="display: inline-block; width: 12px; height: 12px; background: var(--danger); border-radius: 50%; margin-right: 5px;"></span> Expense (35%)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-center">Category-wise Expense</h3>
+                        <div class="chart">
+                            <div class="chart-bar">
+                                <div class="bar" style="height: 80%; background-color: var(--danger);">
+                                    <div class="bar-value"> ₹800</div>
+                                    <div class="bar-label">Food</div>
+                                </div>
+                                <div class="bar" style="height: 60%; background-color: var(--warning);">
+                                    <div class="bar-value"> ₹600</div>
+                                    <div class="bar-label">Utilities</div>
+                                </div>
+                                <div class="bar" style="height: 40%; background-color: var(--info);">
+                                    <div class="bar-value"> ₹400</div>
+                                    <div class="bar-label">Transport</div>
+                                </div>
+                                <div class="bar" style="height: 30%; background-color: var(--primary);">
+                                    <div class="bar-value"> ₹300</div>
+                                    <div class="bar-label">Entertainment</div>
+                                </div>
+                                <div class="bar" style="height: 20%; background-color: var(--secondary);">
+                                    <div class="bar-value"> ₹200</div>
+                                    <div class="bar-label">Shopping</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

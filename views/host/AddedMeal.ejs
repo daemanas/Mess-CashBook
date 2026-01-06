@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashBook || Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div id="app">
+        <%- include('../partials/header') %>
+        <!-- Main Content -->
+        <main class="main-content">
+            <h2>🍽️ Meal Dashboard</h2>
+
+            <% if (users.length > 0) { %>
+
+                <% users.forEach(user => { %>
+                    <div class="data_containner">
+
+                        <h2>👤 <%= user.name %></h2>
+
+                        <div class="card">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Food Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% user.meals.forEach(m => { %>
+                                            <tr>
+                                                <td><%= new Date(m.date).toLocaleDateString('en-IN') %></td>
+                                                <td><%= m.food_count %></td>
+                                            </tr>
+                                        <% }) %>
+
+                                        <!-- 🔹 User Total -->
+                                        <tr class="total-row">
+                                            <td><strong>Total (<%= user.name %>)</strong></td>
+                                            <td><strong><%= user.userTotal %></strong></td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="/add-Meal?name=<%= encodeURIComponent(user.name) %>" class="btn">
+                        Meal Add
+                    </a>
+
+                    <form action="/meal-delete-user/<%= user._id %>" 
+                        method="POST" 
+                        style="margin-top:10px; display:inline;">
+
+                        <button class="btn btn-danger btn-sm"
+                            onclick="return confirm('এই ইউজারের সব Meal ডিলিট করতে চান?')">
+                            Delete Full Card
+                        </button>
+
+                    </form>
+
+
+                <% }) %>
+
+                <!-- 🔥 GRAND TOTAL FOOD COUNT -->
+                <div class="data_containner">
+                    <div class="card">
+                        <table class="entries-table">
+                            <tr class="total-row">
+                                <td><strong>🍽️ Grand Total Food</strong></td>
+                                <td><strong><%= grandTotalFood %></strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+            <% } else { %>
+                <p>No meal data found</p>
+            <% } %>
+
+
+        </main>
+    </div>
+</body>
+</html>
+
+
+
