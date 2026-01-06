@@ -6,7 +6,7 @@ const authController = require('../controller/authController');
 
 
 
-router.get('/create-otp', authController.getCreateOtp);
+router.get('/create-mess-DA@1-otp', authController.getCreateOtp);
 router.post('/generate-otp', authController.generateOtp);
 
 router.get('/register', authController.getRegister);
