@@ -58,6 +58,13 @@ app.use(authRouter);
 app.use(userRouter);
 
 /* error */ 
+
+app.use((req, res) => {
+  res.status(404).render('host/error', {
+    message: 'Page not found'
+  });
+});
+
 app.use((err, req, res, next) => {
     console.error(err);
     res.status(500).render('host/error', {
