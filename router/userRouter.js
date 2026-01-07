@@ -24,8 +24,8 @@ userRouter.get('/transactions', userController.getTransactions);
 userRouter.get('/moneyAdded', userController.getMoneyAdded);
 userRouter.get('/expentionAdded', userController.getExpenseAdded);
 userRouter.get('/AddedMeal', userController.getAddedMeal);
-userRouter.get('/getMealBilling', userController.getMealBilling);
-userRouter.get('/getFinalSettlement',  userController.getFinalSettlement);
+userRouter.get('/meal-billing', userController.getMealBilling);
+userRouter.get('/final-settlement',  userController.getFinalSettlement);
 
 
 // deleted routes
