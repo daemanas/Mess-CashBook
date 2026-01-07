@@ -2,3 +2,12 @@
     <div class="spinner"></div>
     <p>Loading CashBook...</p>
 </div>
+
+<script>
+    window.addEventListener('load', function () {
+        const loader = document.getElementById('global-loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    });
+</script>
