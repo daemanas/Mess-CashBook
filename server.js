@@ -60,7 +60,7 @@ app.use(userRouter);
 /* error */ 
 app.use((err, req, res, next) => {
     console.error(err);
-    res.status(500).render('error', {
+    res.status(500).render('host/error', {
         message: 'Something went wrong. Please try again.'
     });
 });
