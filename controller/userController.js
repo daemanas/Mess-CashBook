@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 const MoneyAdd = require('../models/moneyAdd');
 const VagetableExpense = require('../models/moneyExpenses');
@@ -96,39 +97,45 @@ exports.getAddEntry = (req, res) => {
 /* =========================
    POST ADD ENTRY
 ========================= */
-exports.postAddEntry = async (req, res, next) => {
+
+exports.postAddEntry = async (req, res) => {
     try {
         const { entry_title, entry_amount, entry_date } = req.body;
 
-//         const newEntry = new MoneyAdd({
-//             entry_title: entry_title.trim().toLowerCase(),
-//             entry_amount: Number(entry_amount),
-//             entry_date,
-//             user: req.session.user.id
-//         });
+        const memberName = entry_title.trim().toLowerCase();
+        const userId = req.session.user.id;
 
-
-//         await newEntry.save();
-//         res.redirect('/moneyAdded');
-
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).send('Error saving entry');
-//     }
-// }; 
+        // 1️⃣ Money add
         await MoneyAdd.create({
-            entry_title: entry_title.trim().toLowerCase(),
+            entry_title: memberName,
             entry_amount: Number(entry_amount),
             entry_date,
-            user: req.session.user.id
+            user: userId
         });
 
+        // 2️⃣ MealUser আছে কিনা check
+        const mealUser = await MealUser.findOne({
+            name: memberName,
+            user: userId
+        });
+
+        // 3️⃣ না থাকলে নতুন MealUser বানাও
+        if (!mealUser) {
+            await MealUser.create({
+                name: memberName,
+                meals: [],
+                user: userId
+            });
+        }
+
         res.redirect('/moneyAdded');
+
     } catch (err) {
         console.error(err);
         res.status(500).send('Money add failed');
     }
 };
+
 
 
 exports.getAddExpense =( req, res) => {
@@ -308,13 +315,27 @@ exports.getExpenseAdded = async (req, res) => {
 
 
 
-exports.getAddMeal = (req, res) => {
-    const name = req.query.name || '';
+exports.getAddMeal = async (req, res) => {
+    try {
+        const userId = req.session.user.id;
 
-    res.render('host/AddMeal', {
-        name
-    });
+        // 🔥 MoneyAdd থেকে unique member নাম
+        const members = await MoneyAdd.distinct(
+            'entry_title',
+            { user: userId }
+        );
+
+        res.render('host/AddMeal', {
+            members
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Failed to load members');
+    }
 };
+
+
 
 
 
@@ -353,11 +374,11 @@ exports.postAddMeal = async (req, res) => {
         
 
 
+        // 🔥 MealUser না থাকলে এখন create হবে
         if (!user) {
-            // 🆕 নতুন user → card তৈরি
-            user = new MealUser({
+            user = await MealUser.create({
                 name: name.trim().toLowerCase(),
-                meals: [{ date: today, food_count: Number(food_count) }],
+                meals: [],
                 user: req.session.user.id
             });
 
@@ -662,4 +683,3 @@ exports.deleteMealUser = async (req, res) => {
         res.status(500).send('Meal user delete failed');
     }
 };
-

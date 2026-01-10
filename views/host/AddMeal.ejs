@@ -37,28 +37,19 @@
                         </div>
 
 
-                        <!-- NAME FIELD (SMART LOGIC) -->
+                        <!-- MEMBER SELECT -->
                         <div class="form-group">
-                            <label>Name</label>
+                            <label>Select Member</label>
+                            <select name="name" required>
+                                <option value="">-- Select Member --</option>
 
-                            <% if (name) { %>
-                                <!-- 🔵 Member card থেকে এলে -->
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value="<%= name %>"
-                                    readonly
-                                    required
-                                >
-                            <% } else { %>
-                                <!-- 🟢 Direct add -->
-                                <input
-                                    type="text"
-                                    name="name"
-                                    placeholder="Enter Name"
-                                    required
-                                >
-                            <% } %>
+                                <% members.forEach(name => { %>
+                                    <option value="<%= name %>">
+                                        <%= name %>
+                                    </option>
+                                <% }) %>
+                            </select>
+
                         </div>
                         
 
