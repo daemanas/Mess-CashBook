@@ -308,32 +308,32 @@ exports.getExpenseAdded = async (req, res) => {
 
 
 
-// exports.getAddMeal = (req, res) => {
-//     const name = req.query.name || '';
+exports.getAddMeal = (req, res) => {
+    const name = req.query.name || '';
 
-//     res.render('host/AddMeal', {
-//         name
-//     });
-// };
-
-
-
-exports.getAddMeal = async (req, res) => {
-    try {
-        const members = await MealUser.find({
-            user: req.session.user.id
-        });
-
-        res.render('host/AddMeal', {
-            members
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).render('error', {
-            message: 'Failed to load members'
-        });
-    }
+    res.render('host/AddMeal', {
+        name
+    });
 };
+
+
+
+// exports.getAddMeal = async (req, res) => {
+//     try {
+//         const members = await MealUser.find({
+//             user: req.session.user.id
+//         });
+
+//         res.render('host/AddMeal', {
+//             members
+//         });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).render('error', {
+//             message: 'Failed to load members'
+//         });
+//     }
+// };
 
 
 

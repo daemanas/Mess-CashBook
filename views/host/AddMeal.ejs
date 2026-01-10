@@ -36,20 +36,31 @@
                             </a>
                         </div>
 
-                        <!-- MEMBER SELECT -->
+
+                        <!-- NAME FIELD (SMART LOGIC) -->
                         <div class="form-group">
-                            <label>Select Member</label>
+                            <label>Name</label>
 
-                            <select name="memberId" required>
-                                <option value="">-- Select Member --</option>
-
-                                <% members.forEach(member => { %>
-                                    <option value="<%= member._id %>">
-                                        <%= member.name %>
-                                    </option>
-                                <% }) %>
-                            </select>
+                            <% if (name) { %>
+                                <!-- 🔵 Member card থেকে এলে -->
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value="<%= name %>"
+                                    readonly
+                                    required
+                                >
+                            <% } else { %>
+                                <!-- 🟢 Direct add -->
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder="Enter Name"
+                                    required
+                                >
+                            <% } %>
                         </div>
+                        
 
                         <!-- MEAL COUNT -->
                         <div class="form-group">
