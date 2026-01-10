@@ -320,7 +320,7 @@ exports.getExpenseAdded = async (req, res) => {
 
 exports.getAddMeal = async (req, res) => {
     try {
-        const members = await Member.find({
+        const members = await MealUser.find({
             user: req.session.user.id
         });
 
