@@ -16,16 +16,16 @@ const userSchema = new mongoose.Schema({
     },
     otp: String,
     otpExpires: Date,
-    // role: {
-    //     type: String,
-    //     enum: ['personal', 'admin', 'member'],
-    //     default: 'admin'
+    role: {
+        type: String,
+        enum: ['personal', 'admin', 'member'],
+        default: 'admin'
         
-    // },
-    // groupId: {
-    //     type: String,
-    //     default: null
-    // },
+    },
+    groupId: {
+        type: String,
+        default: null
+    },
     isVerified: {
         type: Boolean,
         default: false

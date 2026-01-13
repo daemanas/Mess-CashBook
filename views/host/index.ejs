@@ -96,6 +96,39 @@
                                     <th>Type</th>
                                 </tr>
                             </thead>
+                            <tbody>
+                                <% if (recentTransactions.length === 0) { %>
+                                    <tr>
+                                    <td colspan="5">No recent activity</td>
+                                    </tr>
+                                <% } %>
+
+                                <% recentTransactions.forEach(tx => { %>
+                                    <tr>
+                                    <td><%= new Date(tx.date).toLocaleDateString('en-IN') %></td>
+                                    <td><%= tx.name %></td>
+                                    <td><%= tx.category %></td>
+
+                                    <td>
+                                        <% if (tx.type === 'Meal') { %>
+                                        <%= tx.amount %> meals
+                                        <% } else { %>
+                                        ₹ <%= tx.amount %>
+                                        <% } %>
+                                    </td>
+
+                                    <td>
+                                        <% if (tx.type === 'Income') { %>
+                                        <span class="badge badge-income">Income</span>
+                                        <% } else if (tx.type === 'Expense') { %>
+                                        <span class="badge badge-expense">Expense</span>
+                                        <% } else { %>
+                                        <span class="badge badge-meal">Meal</span>
+                                        <% } %>
+                                    </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
                            
                         </table>
                     </div>

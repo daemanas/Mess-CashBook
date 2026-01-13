@@ -45,6 +45,19 @@
                             >
                         </div>
                         
+                        <div class="form-group">
+                            <% if (user.role === 'admin') { %>
+                            <p><strong>Your Group ID:</strong> <%= user.groupId %></p>
+                            <% } %>
+                        </div>
+
+                        
+
+                        <div class="form-group">
+                            <label>Role</label>
+                            <input type="text" value="<%= user.role %>" readonly>
+                        </div>
+                        
                     </form>
                 </div>
                  <!-- Logout Section -->
