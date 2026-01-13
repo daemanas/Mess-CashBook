@@ -19,6 +19,19 @@
         <p class="subtitle">Complete Registration</p>
 
         <form action="/register" method="POST">
+            
+            <label>Account Type</label>
+            <select name="accountType" id="accountType" required>
+                <option value="">-- Select --</option>
+                <!-- <option value="personal">Personal Use</option> -->
+                <option value="admin">Create Group</option>
+                <option value="member">Join Group</option>
+            </select>
+
+            <div id="groupIdBox" style="display:none;">
+                <label>Group ID</label>
+                <input type="text" name="groupId" placeholder="Enter Group ID">
+            </div>
 
             <input
                 type="text"
