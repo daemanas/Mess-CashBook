@@ -16,7 +16,7 @@ const MealUser = require('../models/mealUser');
 exports.getIndex = async (req, res) => {
     try {
         const userId = new mongoose.Types.ObjectId(req.session.user.id)
-        const filter = buildFilter(req);
+           
         // 🔹 Total Income
         const incomeResult = await MoneyAdd.aggregate([
             { $match: { groupId: req.session.user.groupId} },
@@ -176,7 +176,7 @@ exports.postAddEntry = async (req, res) => {
 
         const memberName = entry_title.trim().toLowerCase();
         const userId = req.session.user.id;
-        const filter = buildFilter(req);
+           
 
         // 1️⃣ Money add
         await MoneyAdd.create({
@@ -229,7 +229,7 @@ exports.postAddExpense = async (req, res) => {
 
     const userId = req.session.user.id;
     const groupId = req.session.user.groupId;
-    const filter = buildFilter(req);
+       
 
     for (let i = 0; i < titles.length; i++) {
       await VagetableExpense.create({
@@ -358,7 +358,7 @@ exports.getTransactions = async (req, res) => {
 
 exports.getMoneyAdded = async (req, res) => {
   try {
-    const filter = buildFilter(req);
+       
     const entries = await MoneyAdd.find({ groupId: req.session.user.groupId});
 
     // const entries = await MoneyAdd.find({ filter });
@@ -403,7 +403,7 @@ exports.getMoneyAdded = async (req, res) => {
 exports.getExpenseAdded = async (req, res) => {
   try {
     const groupId = req.session.user.groupId;
-    const filter = buildFilter(req);
+       
 
     // 🔥 group-wise expense fetch
     const expenses = await VagetableExpense
@@ -572,7 +572,7 @@ exports.getAddedMeal = async (req, res) => {
 exports.getMealBilling = async (req, res) => {
   try {
     const groupId = req.session.user.groupId;
-    const filter = buildFilter(req);
+       
 
     // 🔹 Total Expense (GROUP WISE)
     const expenseResult = await VagetableExpense.aggregate([
@@ -647,7 +647,7 @@ exports.getFinalSettlement = async (req, res) => {
     }
 
     const groupId = req.session.user.groupId;
-    const filter = buildFilter(req);
+       
 
     /* =====================
        1️⃣ Total Expense (GROUP)
