@@ -96,42 +96,38 @@
                                     <th>Type</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>2023-05-15</td>
-                                    <td>Grocery Shopping</td>
-                                    <td>Food</td>
-                                    <td> ₹85.50</td>
-                                    <td><span class="badge badge-expense">Expense</span></td>
-                                </tr>
-                                <tr>
-                                    <td>2023-05-14</td>
-                                    <td>Freelance Payment</td>
-                                    <td>Income</td>
-                                    <td> ₹1,200.00</td>
-                                    <td><span class="badge badge-income">Income</span></td>
-                                </tr>
-                                <tr>
-                                    <td>2023-05-13</td>
-                                    <td>Electricity Bill</td>
-                                    <td>Utilities</td>
-                                    <td> ₹120.75</td>
-                                    <td><span class="badge badge-expense">Expense</span></td>
-                                </tr>
-                                <tr>
-                                    <td>2023-05-12</td>
-                                    <td>Online Course</td>
-                                    <td>Education</td>
-                                    <td> ₹59.99</td>
-                                    <td><span class="badge badge-expense">Expense</span></td>
-                                </tr>
-                                <tr>
-                                    <td>2023-05-10</td>
-                                    <td>Stock Dividend</td>
-                                    <td>Investment</td>
-                                    <td> ₹45.25</td>
-                                    <td><span class="badge badge-income">Income</span></td>
-                                </tr>
+                           <tbody>
+                                <% if (recentTransactions.length === 0) { %>
+                                    <tr>
+                                    <td colspan="5">No recent activity</td>
+                                    </tr>
+                                <% } %>
+
+                                <% recentTransactions.forEach(tx => { %>
+                                    <tr>
+                                    <td><%= new Date(tx.date).toLocaleDateString('en-IN') %></td>
+                                    <td><%= tx.name %></td>
+                                    <td><%= tx.category %></td>
+
+                                    <td>
+                                        <% if (tx.type === 'Meal') { %>
+                                        <%= tx.amount %> meals
+                                        <% } else { %>
+                                        ₹ <%= tx.amount %>
+                                        <% } %>
+                                    </td>
+
+                                    <td>
+                                        <% if (tx.type === 'Income') { %>
+                                        <span class="badge badge-income">Income</span>
+                                        <% } else if (tx.type === 'Expense') { %>
+                                        <span class="badge badge-expense">Expense</span>
+                                        <% } else { %>
+                                        <span class="badge badge-meal">Meal</span>
+                                        <% } %>
+                                    </td>
+                                    </tr>
+                                <% }) %>
                             </tbody>
                         </table>
                     </div>

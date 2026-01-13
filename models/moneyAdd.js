@@ -13,12 +13,21 @@ const moneyAddSchema = mongoose.Schema({
         type :Date,
         required : true
     },
+    groupId: {
+        type: String,
+        default: null
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     }
-});
+},
+    {
+        timestamps: true   // ✅ এখানেই দিতে হবে
+    }
+
+)
 
 
 
