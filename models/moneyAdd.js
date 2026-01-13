@@ -22,10 +22,10 @@ const moneyAddSchema = mongoose.Schema({
         ref: 'User',
         required: true
     }
-},
-    {
-        timestamps: true   // ✅ এখানেই দিতে হবে
-    }
+}
+    // {
+    //     timestamps: true   // ✅ এখানেই দিতে হবে
+    // }
 
 )
 

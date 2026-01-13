@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a74da">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>CashBook || Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <%- include('../partials/loader') %> 
+    <div id="app">
+        <%- include('../partials/header') %>
+        <!-- Main Content -->
+        <main class="main-content">
+            
+                
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page">
+                <h2>Dashboard</h2>
+                <div class="dashboard-cards">
+                    <div class="dashboard-card income">
+                        <h3> Total mess Fund</h3>
+                        <div class="card-value text-success">₹<%= incomeTotal %></div>
+                        <p>+12% from yesterday</p>
+                    </div>
+                    <div class="dashboard-card expense">
+                        <h3>Total expenses</h3>
+                        <div class="card-value text-danger"> ₹<%= expenseTotal %></div>
+                        <p>-5% from yesterday</p>
+                    </div>
+                    <div class="dashboard-card balance">
+                        <h3>Total Avl Balance</h3>
+                        <div class="card-value"> ₹<%= availableBalance %></div>
+                        <p>All accounts</p>
+                    </div>
+                    <div class="dashboard-card expense">
+                        <h3>Pre Meal Price</h3>
+                        <div class="card-value text-danger"> ₹<%= perMealPrice %></div>
+                        <p>-5% from yesterday</p>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Weekly Summary</h3>
+                    <div class="chart">
+                        <div class="chart-bar">
+                            <div class="bar" style="height: 70%;">
+                                <div class="bar-value"> ₹300</div>
+                                <div class="bar-label">Mon</div>
+                            </div>
+                            <div class="bar" style="height: 50%;">
+                                <div class="bar-value"> ₹500</div>
+                                <div class="bar-label">Tue</div>
+                            </div>
+                            <div class="bar" style="height: 90%;">
+                                <div class="bar-value"> ₹900</div>
+                                <div class="bar-label">Wed</div>
+                            </div>
+                            <div class="bar" style="height: 60%;">
+                                <div class="bar-value"> ₹600</div>
+                                <div class="bar-label">Thu</div>
+                            </div>
+                            <div class="bar" style="height: 80%;">
+                                <div class="bar-value"> ₹800</div>
+                                <div class="bar-label">Fri</div>
+                            </div>
+                            <div class="bar" style="height: 40%;">
+                                <div class="bar-value"> ₹400</div>
+                                <div class="bar-label">Sat</div>
+                            </div>
+                            <div class="bar" style="height: 30%;">
+                                <div class="bar-value"> ₹300</div>
+                                <div class="bar-label">Sun</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Transactions</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                           <tbody>
+                                <% if (recentTransactions.length === 0) { %>
+                                    <tr>
+                                    <td colspan="5">No recent activity</td>
+                                    </tr>
+                                <% } %>
+
+                                <% recentTransactions.forEach(tx => { %>
+                                    <tr>
+                                    <td><%= new Date(tx.date).toLocaleDateString('en-IN') %></td>
+                                    <td><%= tx.name %></td>
+                                    <td><%= tx.category %></td>
+
+                                    <td>
+                                        <% if (tx.type === 'Meal') { %>
+                                        <%= tx.amount %> meals
+                                        <% } else { %>
+                                        ₹ <%= tx.amount %>
+                                        <% } %>
+                                    </td>
+
+                                    <td>
+                                        <% if (tx.type === 'Income') { %>
+                                        <span class="badge badge-income">Income</span>
+                                        <% } else if (tx.type === 'Expense') { %>
+                                        <span class="badge badge-expense">Expense</span>
+                                        <% } else { %>
+                                        <span class="badge badge-meal">Meal</span>
+                                        <% } %>
+                                    </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+<%- include('../partials/pwa') %>
+</body>
+</html>

@@ -10,10 +10,10 @@ const memberSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     }
-},
-  {
-    timestamps: true   // ✅ এখানেই দিতে হবে
-  }
+}
+  // {
+  //   timestamps: true   // ✅ এখানেই দিতে হবে
+  // }
 );
 
 module.exports = mongoose.model('Member', memberSchema);
