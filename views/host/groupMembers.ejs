@@ -1,0 +1,97 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a74da">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>CashBook || Settings</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>   
+    <%- include('../partials/loader') %>  
+    <div id="app">
+        <%- include('../partials/header') %>    
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Settings Page -->
+            <div id="settings-page" class="page">
+                <h2>Settings</h2>
+                <div class="card">
+                    
+                    <h2>👥 Group Members</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <% members.forEach(m => { %>
+                                <tr>
+                                    <td><%= m.name %></td>
+                                    <td><%= m.email %></td>
+                                    <td><%= m.role %></td>
+
+                                    <td>
+                                    <% if (currentUser.role === 'admin' && m._id.toString() !== currentUser.id) { %>
+
+                                        <!-- Action dropdown -->
+                                        <div class="action-menu">
+                                        <button class="menu-btn">⋮</button>
+
+                                        <div class="menu-dropdown">
+                                            <% if (m.role !== 'admin') { %>
+                                            <form action="/settings/members/<%= m._id %>/make-admin" method="POST">
+                                                <button type="submit">⭐ Make Admin</button>
+                                            </form>
+                                            <% } %>
+
+                                            <form action="/settings/members/<%= m._id %>/remove" method="POST">
+                                            <button type="submit" class="danger">🚫 Remove</button>
+                                            </form>
+                                        </div>
+                                        </div>
+
+                                    <% } else { %>
+                                        —
+                                    <% } %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+
+                        
+                </div>
+                 <!-- Logout Section -->
+                <div class="card" style="margin-top: 2rem;">
+                    <h3>Account</h3>
+
+                    <form action="/logout" method="GET">
+                        <button type="submit" class="btn btn-danger" style="width:100%;">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+<%- include('../partials/pwa') %>
+</body>
+</html>
+
+
+

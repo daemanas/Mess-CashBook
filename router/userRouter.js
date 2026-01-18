@@ -50,5 +50,23 @@ userRouter.post(
 );
 
 
+userRouter.get(
+  '/settings/members',
+  isAuth,
+  userController.getGroupMembers
+);
+
+userRouter.post(
+  '/settings/members/:id/make-admin',
+  isAuth,
+  userController.makeAdmin
+);
+
+userRouter.post(
+  '/settings/members/:id/remove',
+  isAuth,
+  userController.removeMember
+);
+
 
 module.exports = userRouter;

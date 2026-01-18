@@ -819,3 +819,64 @@ exports.deleteMealUser = async (req, res) => {
   }
 };
    
+
+
+
+exports.getGroupMembers = async (req, res) => {
+  try {
+    const groupId = req.session.user.groupId;
+
+    const members = await User.find({ groupId })
+      .select('name email role');
+
+    res.render('host/groupMembers', {
+      members,
+      currentUser: req.session.user
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to load members');
+  }
+};
+
+
+
+exports.makeAdmin = async (req, res) => {
+  try {
+    if (req.session.user.role !== 'admin') {
+      return res.status(403).send('Access denied');
+    }
+
+    await User.updateOne(
+      { _id: req.params.id, groupId: req.session.user.groupId },
+      { role: 'admin' }
+    );
+
+    res.redirect('/settings/members');
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to update role');
+  }
+};
+
+
+exports.removeMember = async (req, res) => {
+  try {
+    if (req.session.user.role !== 'admin') {
+      return res.status(403).send('Access denied');
+    }
+
+    await User.deleteOne({
+      _id: req.params.id,
+      groupId: req.session.user.groupId
+    });
+
+    res.redirect('/settings/members');
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to remove member');
+  }
+};
