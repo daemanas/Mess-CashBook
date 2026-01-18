@@ -71,6 +71,13 @@
         </p>
     </div>
 
+    <script>
+        document.getElementById('accountType').addEventListener('change', e => {
+            document.getElementById('groupIdBox').style.display =
+                e.target.value === 'member' ? 'block' : 'none';
+        });
+    </script>
+
 <%- include('../partials/pwa') %>
 </body>
 </html>
