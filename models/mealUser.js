@@ -17,19 +17,19 @@ const mealUserSchema = new mongoose.Schema({
         required: true
     },
     meals: [mealSchema],
-    // groupId: {
-    //     type: String,
-    //     default: null
-    // },
+    groupId: {
+        type: String,
+        default: null
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     }
-}
-    // {
-    //     timestamps: true   // ✅ এখানেই দিতে হবে
-    // }
+},
+    {
+        timestamps: true   // ✅ এখানেই দিতে হবে
+    }
 
 )
 

@@ -11,9 +11,9 @@ const memberSchema = new mongoose.Schema({
         required: true
     }
 },
-//   {
-//     timestamps: true   // ✅ এখানেই দিতে হবে
-//   }
+  {
+    timestamps: true   // ✅ এখানেই দিতে হবে
+  }
 );
 
 
