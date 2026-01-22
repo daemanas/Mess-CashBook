@@ -425,6 +425,7 @@ exports.getExpenseAdded = async (req, res) => {
       }
 
       groupedByDate[dateKey].items.push({
+        _id: item._id,  //add new
         name: item.vag_name,
         amount: item.entry_amount
       });
@@ -879,4 +880,22 @@ exports.removeMember = async (req, res) => {
     console.error(err);
     res.status(500).send('Failed to remove member');
   }
+};
+
+// singal list delete
+
+exports.deleteSingleExpense = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        await VagetableExpense.deleteOne({
+            _id: id,
+            groupId: req.session.user.groupId   // 🔐 safety
+        });
+
+        res.redirect('/expentionAdded');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Single expense delete failed');
+    }
 };

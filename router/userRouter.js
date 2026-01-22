@@ -49,6 +49,14 @@ userRouter.post(
     userController.deleteMealUser
 );
 
+//singal delet
+
+userRouter.post(
+  '/expense-delete-single/:id',
+  isAuth,
+  userController.deleteSingleExpense
+);
+
 
 userRouter.get(
   '/settings/members',

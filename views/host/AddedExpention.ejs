@@ -42,6 +42,23 @@
                                             <tr>
                                                 <td><%= item.name %></td>
                                                 <td>₹ <%= item.amount %></td>
+                                                <!-- 🔵 3 DOT MENU -->
+                                                <td>
+                                                    <div class="dropdown" style="display:inline-block; float:right;">
+                                                        <button class="dot-btn">⋮</button>
+
+                                                        <div class="dropdown-menu">
+                                                            <form action="/expense-delete-single/<%= item._id %>"
+                                                                method="POST">
+                                                                <button type="submit"
+                                                                        class="delete-btn"
+                                                                        onclick="return confirm('এই আইটেমটি ডিলিট করবেন?')">
+                                                                    Delete
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         <% }) %>
 
