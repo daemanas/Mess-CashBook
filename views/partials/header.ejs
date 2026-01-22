@@ -6,7 +6,9 @@
                     <button class="menu-toggle">☰</button>
                     <div class="logo">CashBook</div>
                 </div>
-                <div class="user-avatar">MA</div>
+                <div class="user-avatar">
+                    <%= user?.name ? user.name.charAt(0).toUpperCase() : 'U' %>
+                </div>
             </div>
         </nav>
 
