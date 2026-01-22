@@ -62,7 +62,7 @@ userRouter.post(
   userController.deleteSingleMeal
 );
 
-router.post(
+userRouter.post(
   '/money-delete-single/:id',
   isAuth,
   userController.deleteSingleMoney
