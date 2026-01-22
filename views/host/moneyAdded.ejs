@@ -33,17 +33,31 @@
                                     <tr>
                                         <th>Date</th>
                                         <th>Amount</th>
+                                        <th>AC</th>
                                     </tr>
                                 </thead>
                                 <tbody>
 
                                     <% group.entries.forEach(e => { %>
                                         <tr>
+                                            <td><%= new Date(e.entry_date).toLocaleDateString('en-IN') %></td>
+                                            <td>₹<%= e.entry_amount %></td>
                                             <td>
-                                                <%= new Date(e.entry_date).toLocaleDateString('en-IN') %>
-                                            </td>
-                                            <td>
-                                                ₹<%= e.entry_amount %>
+                                                <!-- 🔵 3 DOT MENU -->
+                                                <div class="dropdown" style="display:inline-block; float:right;">
+                                                    <button class="dot-btn">⋮</button>
+
+                                                    <div class="dropdown-menu">
+                                                        <form action="/money-delete-single/<%= e._id %>"
+                                                            method="POST">
+                                                            <button type="submit"
+                                                                    class="delete-btn"
+                                                                    onclick="return confirm('এই এন্ট্রিটি ডিলিট করবেন?')">
+                                                                Delete
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
                                             </td>
                                         </tr>
                                     <% }) %>
@@ -51,6 +65,7 @@
                                     <!-- 🔹 Card-wise Total -->
                                     <tr class="total-row">
                                         <td><strong>Total (<%= group.title %>)</strong></td>
+                                        <td></td>
                                         <td><strong>₹<%= group.total %></strong></td>
                                     </tr>
 

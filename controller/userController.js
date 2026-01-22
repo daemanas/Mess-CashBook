@@ -899,3 +899,45 @@ exports.deleteSingleExpense = async (req, res) => {
         res.status(500).send('Single expense delete failed');
     }
 };
+
+
+exports.deleteSingleMeal = async (req, res) => {
+    try {
+        const { userId, mealId } = req.params;
+
+        await MealUser.updateOne(
+            {
+                _id: userId,
+                groupId: req.session.user.groupId   // 🔐 safety
+            },
+            {
+                $pull: {
+                    meals: { _id: mealId }
+                }
+            }
+        );
+
+        res.redirect('/AddedMeal');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Meal delete failed');
+    }
+};
+
+exports.deleteSingleMoney = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        await MoneyAdd.deleteOne({
+            _id: id,
+            groupId: req.session.user.groupId   // 🔐 group safety
+        });
+
+        res.redirect('/moneyAdded');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Money delete failed');
+    }
+};
+
+//

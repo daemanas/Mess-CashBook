@@ -33,6 +33,7 @@
                                         <tr>
                                             <th>Date</th>
                                             <th>Food Count</th>
+                                            <th>AC</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -40,12 +41,30 @@
                                             <tr>
                                                 <td><%= new Date(m.date).toLocaleDateString('en-IN') %></td>
                                                 <td><%= m.food_count %></td>
+                                                <td>
+                                                    <!-- 🔵 3 DOT MENU -->
+                                                    <div class="dropdown" style="display:inline-block; float:right;">
+                                                        <button class="dot-btn">⋮</button>
+
+                                                        <div class="dropdown-menu">
+                                                            <form action="/meal-delete-single/<%= user._id %>/<%= m._id %>"
+                                                                method="POST">
+                                                                <button type="submit"
+                                                                        class="delete-btn"
+                                                                        onclick="return confirm('এই দিনের Meal ডিলিট করবেন?')">
+                                                                    Delete
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         <% }) %>
 
                                         <!-- 🔹 User Total -->
                                         <tr class="total-row">
                                             <td><strong>Total (<%= user.name %>)</strong></td>
+                                            <td></td>
                                             <td><strong><%= user.userTotal %></strong></td>
                                         </tr>
 

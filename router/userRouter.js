@@ -56,7 +56,17 @@ userRouter.post(
   isAuth,
   userController.deleteSingleExpense
 );
+userRouter.post(
+  '/meal-delete-single/:userId/:mealId',
+  isAuth,
+  userController.deleteSingleMeal
+);
 
+router.post(
+  '/money-delete-single/:id',
+  isAuth,
+  userController.deleteSingleMoney
+); 
 
 userRouter.get(
   '/settings/members',
