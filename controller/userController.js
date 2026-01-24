@@ -886,11 +886,8 @@ exports.removeMember = async (req, res) => {
 
 exports.deleteSingleExpense = async (req, res) => {
     try {
-        // const id = req.params.id;
-                
-        if (req.session.user.role !== 'admin') {
-          return res.status(403).send('Access Denied')
-        }
+        const id = req.params.id;
+
 
         await VagetableExpense.deleteOne({
             _id: id,
