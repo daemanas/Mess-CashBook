@@ -886,7 +886,11 @@ exports.removeMember = async (req, res) => {
 
 exports.deleteSingleExpense = async (req, res) => {
     try {
-        const id = req.params.id;
+        // const id = req.params.id;
+                
+        if (req.session.user.role !== 'admin') {
+          return res.status(403).send('Access Denied')
+        }
 
         await VagetableExpense.deleteOne({
             _id: id,
@@ -903,6 +907,9 @@ exports.deleteSingleExpense = async (req, res) => {
 
 exports.deleteSingleMeal = async (req, res) => {
     try {
+        if (req.session.user.role !== 'admin') {
+          return res.status(403).send('Access Denied')
+        }
         const { userId, mealId } = req.params;
 
         await MealUser.updateOne(
@@ -926,7 +933,12 @@ exports.deleteSingleMeal = async (req, res) => {
 
 exports.deleteSingleMoney = async (req, res) => {
     try {
-        const id = req.params.id;
+        // const id = req.params.id;
+                
+        // const id = req.params.id;
+        if (req.session.user.role !== 'admin') {
+          return res.status(403).send('Access Denied')
+        }
 
         await MoneyAdd.deleteOne({
             _id: id,
