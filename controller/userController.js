@@ -930,13 +930,13 @@ exports.deleteSingleMeal = async (req, res) => {
 
 exports.deleteSingleMoney = async (req, res) => {
     try {
-        // const id = req.params.id;
-                
-        // const id = req.params.id;
+        
         if (req.session.user.role !== 'admin') {
           return res.status(403).send('Access Denied')
         }
 
+        const id = req.params.id;
+        
         await MoneyAdd.deleteOne({
             _id: id,
             groupId: req.session.user.groupId   // 🔐 group safety
