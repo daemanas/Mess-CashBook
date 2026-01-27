@@ -62,117 +62,7 @@ exports.getRegister = (req, res) => {
     res.render('auth/register');
 };
 
-/* ======================
-   REGISTER (OTP REQUIRED)
-====================== */
 
-
-
-// exports.postRegister = async (req, res) => {
-//   try {
-//     const { name, email, otp, password, groupId ,accountType } = req.body;
-
-//     const user = await User.findOne({ email });
-//     if (!user) {
-//       return res.send('Please generate OTP first');
-//     }
-
-//     // 🔐 OTP check
-//     if (user.otp !== otp) {
-//       return res.send('Invalid OTP');
-//     }
-
-//     if (user.otpExpires < Date.now()) {
-//       return res.send('OTP expired');
-//     }
-
-//     // 🔑 Role + Group logic
-//     // let role = 'admin';
-//     // let finalGroupId;
-
-//     // if (groupId) {
-//     //   const admin = await User.findOne({ groupId, role: 'admin' });
-//     //   if (!admin) {
-//     //     return res.send('Invalid Admin ID');
-//     //   }
-//     //   role = 'member';
-//     //   finalGroupId = groupId;
-
-//     let role;
-//     let finalGroupId = null;
-
-//     // if (!groupId) {
-//     //   // 🔥 CASE 1: প্রথম ইউজার → ADMIN
-//     //   finalGroupId = generateGroupId();   // ⬅️ AUTO groupId
-//     //   role = 'admin';
-
-//     // } else {
-//     //   // 🔥 CASE 2: Group member
-//     //   const admin = await User.findOne({
-//     //     groupId,
-//     //     role: 'admin'
-//     //   });
-//     //  }
-
-      
-
-//     // if (!groupId) {
-//     //     finalGroupId = generateGroupId()
-//     //     role= 'admin'
-//     // }
-
-//     if (accountType === 'personal') {
-//       role = 'personal';
-//       finalGroupId = null;
-//     }
-
-//     else if (accountType === 'admin') {
-//       role = 'admin';
-//       finalGroupId = generateGroupId();
-//     }
-
-//     else if (accountType === 'member') {
-//       if (!groupId) {
-//         return res.send('Group ID required');
-//       }
-
-//       const admin = await User.findOne({
-//         groupId,
-//         role: 'admin'
-//       });
-
-//       if (!admin) {
-//         return res.send('Invalid Admin ID');
-//       }
-
-//       role = 'member';
-//       finalGroupId = groupId;
-//     }
-//     //  else {
-//     //   finalGroupId = generateGroupId();
-//     // }
-
-//     // 🔒 password hash
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // ✅ UPDATE existing user (NO new User)
-//     user.name = name;
-//     user.password = hashedPassword;
-//     user.role = role;
-//     user.groupId = finalGroupId;
-//     user.isVerified = true;
-//     user.otp = undefined;
-//     user.otpExpires = undefined;
-
-//     await user.save();
-
-//     return res.redirect('/login');
-
-//   } catch (err) {
-//     console.error(err);
-//     return res.status(500).send('Register failed');
-//   }
-// };
 
 
 
@@ -303,6 +193,76 @@ exports.logout = (req, res) => {
 };
 
 
-// group id generate
+
+/*  forgate password */ 
+
+exports.getForgotPassword = (req, res) => {
+  res.render('auth/forgot-password');
+};
+
+exports.postForgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.send('No account found with this email');
+    }
+
+    const otp = generateOtp();
+
+    user.otp = otp;
+    user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
+    await user.save();
+
+    // 🔴 Email না চাইলে screen এ দেখাও
+    res.render('auth/reset-password', {
+      email,
+      otpShown: otp   // demo purpose
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('OTP generation failed');
+  }
+};
 
 
+exports.getResetPassword = (req, res) => {
+  res.render('auth/reset-password', {
+    email: null,
+    otpShown: null
+  });
+};
+
+
+exports.postResetPassword = async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.send('Invalid request');
+
+    if (user.otp !== otp) {
+      return res.send('Invalid OTP');
+    }
+
+    if (user.otpExpires < Date.now()) {
+      return res.send('OTP expired');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    user.password = hashedPassword;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+
+    await user.save();
+
+    res.redirect('/login');
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Password reset failed');
+  }
+};
