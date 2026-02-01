@@ -18,7 +18,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <%- include('../partials/monthFilter') %>
-            
+
             <h2>🍽️ Meal Dashboard</h2>
 
             <% if (users.length > 0) { %>
@@ -66,8 +66,8 @@
                                         <!-- 🔹 User Total -->
                                         <tr class="total-row">
                                             <td><strong>Total (<%= user.name %>)</strong></td>
-                                            <td></td>
                                             <td><strong><%= user.userTotal %></strong></td>
+                                            <td></td>
                                         </tr>
 
                                     </tbody>
