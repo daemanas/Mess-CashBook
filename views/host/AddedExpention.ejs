@@ -17,10 +17,10 @@
         <%- include('../partials/header') %>
         <!-- Main Content -->
         <main class="main-content">
-
-                 
-
-            <h2>🥦 Expension Dashboard</h2>                        
+            <h2>🥦 Expension Dashboard</h2> 
+            <br>   
+            <%- include('../partials/monthFilter') %>      
+            <br>              
 
             <% if (expenseCards.length > 0) { %>
                 <% expenseCards.forEach(card => { %>

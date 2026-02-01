@@ -17,8 +17,10 @@
         <%- include('../partials/header') %>
 
         <main class="main-content">
-                 
-
+            <h2>Members</h2>
+            <br>   
+            <%- include('../partials/monthFilter') %>      
+            <br>   
         <% if (groups && groups.length > 0) { %>
 
             <% groups.forEach(group => { %>
