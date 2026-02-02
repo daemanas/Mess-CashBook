@@ -1822,6 +1822,141 @@ exports.getFinalSettlement = async (req, res) => {
 };
 
 
+exports.getYearHistory = async (req, res) => {
+  try {
+    const groupId = req.session.user.groupId;
+
+    // Income year-wise
+    const incomeByYear = await MoneyAdd.aggregate([
+      { $match: { groupId } },
+      {
+        $group: {
+          _id: { $year: "$entry_date" },
+          totalIncome: { $sum: "$entry_amount" }
+        }
+      }
+    ]);
+
+    // Expense year-wise
+    const expenseByYear = await VagetableExpense.aggregate([
+      { $match: { groupId } },
+      {
+        $group: {
+          _id: { $year: "$entry_date" },
+          totalExpense: { $sum: "$entry_amount" }
+        }
+      }
+    ]);
+
+    // Merge income + expense
+    const yearMap = {};
+
+    incomeByYear.forEach(i => {
+      yearMap[i._id] = {
+        year: i._id,
+        income: i.totalIncome,
+        expense: 0
+      };
+    });
+
+    expenseByYear.forEach(e => {
+      if (!yearMap[e._id]) {
+        yearMap[e._id] = {
+          year: e._id,
+          income: 0,
+          expense: e.totalExpense
+        };
+      } else {
+        yearMap[e._id].expense = e.totalExpense;
+      }
+    });
+
+    const years = Object.values(yearMap)
+      .sort((a, b) => b.year - a.year)
+      .map(y => ({
+        ...y,
+        balance: y.income - y.expense
+      }));
+
+    res.render('host/YearHistory', { years });
+
+  } catch (err) {
+    console.error(err);
+    res.render('host/YearHistory', { years: [] });
+  }
+};
+
+
+exports.getYearDetails = async (req, res) => {
+  try {
+    const groupId = req.session.user.groupId;
+    const year = Number(req.params.year);
+
+    // Income month-wise
+    const incomeByMonth = await MoneyAdd.aggregate([
+      {
+        $match: {
+          groupId,
+          entry_date: {
+            $gte: new Date(year, 0, 1),
+            $lte: new Date(year, 11, 31, 23, 59, 59)
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $month: "$entry_date" },
+          income: { $sum: "$entry_amount" }
+        }
+      }
+    ]);
+
+    // Expense month-wise
+    const expenseByMonth = await VagetableExpense.aggregate([
+      {
+        $match: {
+          groupId,
+          entry_date: {
+            $gte: new Date(year, 0, 1),
+            $lte: new Date(year, 11, 31, 23, 59, 59)
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $month: "$entry_date" },
+          expense: { $sum: "$entry_amount" }
+        }
+      }
+    ]);
+
+    const months = [];
+
+    for (let m = 1; m <= 12; m++) {
+      const income = incomeByMonth.find(i => i._id === m)?.income || 0;
+      const expense = expenseByMonth.find(e => e._id === m)?.expense || 0;
+
+      months.push({
+        month: m,
+        monthName: new Date(0, m - 1).toLocaleString('en', { month: 'long' }),
+        income,
+        expense,
+        balance: income - expense
+      });
+    }
+
+    res.render('host/YearDetails', {
+      year,
+      months
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.redirect('/year-history');
+  }
+};
+
+
 // deleteMoney
 exports.deleteMoneyGroup = async (req, res) => {
   try {

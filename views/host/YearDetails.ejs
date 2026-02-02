@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a74da">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>CashBook || Transactions</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <%- include('../partials/loader') %>  
+    <div id="app">
+        <%- include('../partials/header') %>    
+        <!-- Main Content -->
+        <main class="main-content">
+            <h2>📅 <%= year %> – Monthly Details</h2>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Income</th>
+                    <th>Expense</th>
+                    <th>Balance</th>
+                    <th>Open</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% months.forEach(m => { %>
+                    <tr>
+                    <td><%= m.monthName %></td>
+                    <td>₹ <%= m.income %></td>
+                    <td>₹ <%= m.expense %></td>
+                    <td>₹ <%= m.balance %></td>
+                    <td>
+                        <a href="/?month=<%= m.month %>&year=<%= year %>" class="btn btn-sm">
+                        View
+                        </a>
+                    </td>
+                    </tr>
+                <% }) %>
+                </tbody>
+            </table>
+        </main>
+
+    </div>
+<%- include('../partials/pwa') %>
+</body>
+</html>

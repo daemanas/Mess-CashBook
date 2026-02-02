@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a74da">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>CashBook || Transactions</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <%- include('../partials/loader') %>  
+    <div id="app">
+        <%- include('../partials/header') %>    
+        <!-- Main Content -->
+        <main class="main-content">
+            <h2>📆 Yearly History</h2>
+
+            <% if (years.length === 0) { %>
+                <p>No data found</p>
+            <% } %>
+
+            <% years.forEach(y => { %>
+                <div class="card" style="margin-bottom:12px;">
+                <h3><%= y.year %></h3>
+                <p>Income: ₹ <%= y.income %></p>
+                <p>Expense: ₹ <%= y.expense %></p>
+                <p><strong>Balance: ₹ <%= y.balance %></strong></p>
+
+                <a href="/year-history/<%= y.year %>" class="btn btn-sm">
+                    View Details →
+                </a>
+                </div>
+            <% }) %>
+        </main>
+    </div>
+<%- include('../partials/pwa') %>
+</body>
+</html>

@@ -33,6 +33,9 @@ userRouter.get('/final-settlement',  userController.getFinalSettlement);
 // userRouter.post('/delete-expense', isAuth , userController.postDeleteExpense);
 // userRouter.post('/delete-meal', isAuth , userController.postDeleteMeal);
 
+userRouter.get('/year-history', isAuth, userController.getYearHistory);
+userRouter.get('/year-history/:year', isAuth, userController.getYearDetails);
+
 
 userRouter.post(
     '/money-delete-group/:title',
