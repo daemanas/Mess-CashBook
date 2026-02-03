@@ -18,33 +18,37 @@
         <!-- Main Content -->
         <main class="main-content">
             <h2>📅 <%= year %> – Monthly Details</h2>
+            <div class="card">
+                <div class="table-container">
 
-            <table>
-                <thead>
-                <tr>
-                    <th>Month</th>
-                    <th>Income</th>
-                    <th>Expense</th>
-                    <th>Balance</th>
-                    <th>Open</th>
-                </tr>
-                </thead>
-                <tbody>
-                <% months.forEach(m => { %>
-                    <tr>
-                    <td><%= m.monthName %></td>
-                    <td>₹ <%= m.income %></td>
-                    <td>₹ <%= m.expense %></td>
-                    <td>₹ <%= m.balance %></td>
-                    <td>
-                        <a href="/?month=<%= m.month %>&year=<%= year %>" class="btn btn-sm">
-                        View
-                        </a>
-                    </td>
-                    </tr>
-                <% }) %>
-                </tbody>
-            </table>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Income</th>
+                            <th>Expense</th>
+                            <th>Balance</th>
+                            <th>Open</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <% months.forEach(m => { %>
+                            <tr>
+                            <td><%= m.monthName %></td>
+                            <td>₹ <%= m.income %></td>
+                            <td>₹ <%= m.expense %></td>
+                            <td>₹ <%= m.balance %></td>
+                            <td>
+                                <a href="/?month=<%= m.month %>&year=<%= year %>" class="btn btn-sm">
+                                View
+                                </a>
+                            </td>
+                            </tr>
+                        <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </main>
 
     </div>
