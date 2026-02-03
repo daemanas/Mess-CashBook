@@ -16,40 +16,46 @@
     <div id="app">
         <%- include('../partials/header') %>    
         <!-- Main Content -->
-        <main class="main-content">
-            <h2>📅 <%= year %> – Monthly Details</h2>
-            <div class="card">
-                <div class="table-container">
+        
 
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Month</th>
-                            <th>Income</th>
-                            <th>Expense</th>
-                            <th>Balance</th>
-                            <th>Open</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <% months.forEach(m => { %>
-                            <tr>
-                            <td><%= m.monthName %></td>
-                            <td>₹ <%= m.income %></td>
-                            <td>₹ <%= m.expense %></td>
-                            <td>₹ <%= m.balance %></td>
-                            <td>
-                                <a href="/?month=<%= m.month %>&year=<%= year %>" class="btn btn-sm">
-                                View
-                                </a>
-                            </td>
-                            </tr>
-                        <% }) %>
-                        </tbody>
-                    </table>
+
+        <main class="main-content">
+                <div class="page-header">
+                    <h2>📅 <%= year %> Monthly Summary</h2>
+                    <p class="subtitle">Track your performance month by month</p>
                 </div>
-            </div>
-        </main>
+
+                <div class="monthly-grid">
+                    <% months.forEach(m => { %>
+                        <div class="month-card">
+                            <div class="month-name">
+                                <span><%= m.monthName %></span>
+                                <a href="/?month=<%= m.month %>&year=<%= year %>" class="icon-btn">
+                                    <span>View Details</span> →
+                                </a>
+                            </div>
+
+                            <div class="stats-row">
+                                <div class="stat-box income">
+                                    <label>Income</label>
+                                    <p>₹ <%= m.income %></p>
+                                </div>
+                                <div class="stat-box expense">
+                                    <label>Expense</label>
+                                    <p>₹ <%= m.expense %></p>
+                                </div>
+                            </div>
+
+                            <div class="balance-footer">
+                                <span class="footer-label">Remaining Balance</span>
+                                <span class="footer-value <%= m.balance >= 0 ? 'pos' : 'neg' %>">
+                                    ₹ <%= m.balance %>
+                                </span>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </main>
 
     </div>
 <%- include('../partials/pwa') %>

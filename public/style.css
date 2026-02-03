@@ -2118,3 +2118,221 @@ table tbody tr:hover {
 
 /*
 */
+
+
+/* year card*/
+
+:root {
+    --income-color: #27ae60;
+    --expense-color: #e74c3c;
+    --primary-blue: #0a74da;
+    --bg-light: #f4f7f6;
+}
+
+/* Realistic Card Styling */
+.yearly-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    /* Soft multi-layered shadow for realism */
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        inset 0 0 20px rgba(255, 255, 255, 0.5);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.yearly-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.card-header h3 {
+    font-size: 1.4rem;
+    color: #2d3436;
+    margin: 0;
+}
+
+.badge {
+    font-size: 0.75rem;
+    background: #eef2f7;
+    color: #636e72;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed #dfe6e9;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.label {
+    font-size: 0.8rem;
+    color: #b2bec3;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.income-text { color: var(--income-color); }
+.expense-text { color: var(--expense-color); }
+
+/* Balance Row */
+.balance-row {
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.balance-amount {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--primary-blue);
+    display: block;
+}
+
+/* Stylish Button */
+.btn-glass {
+    background: var(--primary-blue);
+    color: white;
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.3s;
+    box-shadow: 0 4px 12px rgba(10, 116, 218, 0.3);
+}
+
+.btn-glass:hover {
+    background: #085cad;
+}
+
+
+/* month card */
+
+
+/* Container Spacing */
+.monthly-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 30px;
+}
+
+/* The Card */
+.month-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 18px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03); /* Soft realistic shadow */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Card Top Section */
+.month-name {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.month-name span {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.icon-btn {
+    text-decoration: none;
+    font-size: 0.85rem;
+    color: #0a74da;
+    font-weight: 600;
+}
+
+/* Stats Row */
+.stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.stat-box {
+    padding: 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.stat-box label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.stat-box p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.income p { color: #10b981; } /* Green */
+.expense p { color: #ef4444; } /* Red */
+
+/* Balance Footer */
+.balance-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.footer-label {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.footer-value {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.footer-value.pos { color: #0f172a; }
+.footer-value.neg { color: #ef4444; }
+
+/* Subtle Animation */
+.month-card:active {
+    transform: scale(0.98);
+    transition: 0.1s;
+}
+
+

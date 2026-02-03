@@ -1194,7 +1194,7 @@ exports.postAddExpense = async (req, res) => {
 
     const userId = req.session.user.id;
     const groupId = req.session.user.groupId;
-    const filter = buildFilter(req);
+
 
     for (let i = 0; i < titles.length; i++) {
       await VagetableExpense.create({

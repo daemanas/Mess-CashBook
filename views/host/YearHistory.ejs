@@ -23,16 +23,34 @@
                 <p>No data found</p>
             <% } %>
 
-            <% years.forEach(y => { %>
-                <div class="card" style="margin-bottom:12px;">
-                <h3><%= y.year %></h3>
-                <p>Income: ₹ <%= y.income %></p>
-                <p>Expense: ₹ <%= y.expense %></p>
-                <p><strong>Balance: ₹ <%= y.balance %></strong></p>
+            
+             <% years.forEach(y => { %>
+                <div class="card yearly-card">
+                    <div class="card-header">
+                        <h3><%= y.year %></h3>
+                        <span class="badge">Yearly Summary</span>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="label">Income</span>
+                            <span class="value income-text">₹ <%= y.income %></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Expense</span>
+                            <span class="value expense-text">₹ <%= y.expense %></span>
+                        </div>
+                    </div>
 
-                <a href="/year-history/<%= y.year %>" class="btn btn-sm">
-                    View Details →
-                </a>
+                    <div class="balance-row">
+                        <div class="balance-info">
+                            <span class="label">Net Balance</span>
+                            <span class="balance-amount">₹ <%= y.balance %></span>
+                        </div>
+                        <a href="/year-history/<%= y.year %>" class="btn-glass">
+                            View Details
+                        </a>
+                    </div>
                 </div>
             <% }) %>
         </main>
