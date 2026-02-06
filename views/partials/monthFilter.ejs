@@ -1,4 +1,4 @@
-
+<!-- 
 <form method="GET" style="margin-bottom:20px;">
   <select name="month">
     <% for(let m = 1; m <= 12; m++) { %>
@@ -17,4 +17,72 @@
   </select>
 
   <button class="btn btn-sm">View</button>
-</form>
+</form> -->
+
+
+
+
+<div class="datepicker-wrapper">
+    <button type="button" class="datepicker-trigger" id="dateTrigger">
+        <span>📅 <%= new Date(0, month-1).toLocaleString('en', { month: 'long' }) %> <%= year %></span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+
+    <div class="datepicker-modal" id="dateModal">
+        <form method="GET" action="/" id="filterForm">
+            <div class="datepicker-container">
+                <div class="year-header-pro">
+                    <select name="year" class="year-select-pro">
+                        <% for(let y = new Date().getFullYear(); y >= 2022; y--) { %>
+                            <option value="<%= y %>" <%= y === year ? 'selected' : '' %>><%= y %></option>
+                        <% } %>
+                    </select>
+                </div>
+
+                <div class="months-grid-pro">
+                    <% const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; %>
+                    <% monthNames.forEach((name, index) => { %>
+                        <label class="month-unit <%= (index + 1) === month ? 'active' : '' %>">
+                            <input type="radio" name="month" value="<%= index + 1 %>" 
+                                   <%= (index + 1) === month ? 'checked' : '' %> 
+                                   onchange="submitForm()">
+                            <span><%= name %></span>
+                        </label>
+                    <% }) %>
+                </div>
+
+                <div class="datepicker-footer-pro">
+                    <button type="button" class="btn-text" onclick="window.location.href='/'">Reset</button>
+                    <button type="button" class="btn-text" onclick="closeModal()">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+  const trigger = document.getElementById('dateTrigger');
+const modal = document.getElementById('dateModal');
+
+// ক্লিক করলে টগল হবে
+trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+});
+
+// বাইরে ক্লিক করলে বন্ধ হবে
+document.addEventListener('click', (e) => {
+    if (!modal.contains(e.target) && e.target !== trigger) {
+        modal.style.display = 'none';
+    }
+});
+
+// সিলেক্ট করলে অটোমেটিক সাবমিট
+function submitForm() {
+    document.getElementById('filterForm').submit();
+}
+
+function closeModal() {
+    modal.style.display = 'none';
+}
+</script>
