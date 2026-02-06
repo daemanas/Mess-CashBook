@@ -2335,4 +2335,214 @@ table tbody tr:hover {
     transition: 0.1s;
 }
 
+/* ------- ASW -------------*/
+
+:root {
+    --brand-primary: #0052cc; /* Professional Blue */
+    --brand-success: #1d8754;
+    --brand-danger: #d93025;
+    --text-heading: #172b4d;
+    --text-body: #6b778c;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+.pro-dashboard {
+    padding: 16px;
+    border-radius:16px;
+    background: #f4f5f7;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Main Hero Card */
+.main-balance-card {
+    background: linear-gradient(135deg, #101f35 0%, #4a6998 100%);
+    border-radius: 16px;
+    padding: 24px;
+    color: rgb(222, 203, 203);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.amount-pro { font-size: 2.5rem; font-weight: 700; margin: 8px 0; }
+.label-pro { font-size: 0.9rem; opacity: 0.9; font-weight: 500; }
+.balance-tag { background: rgba(255,255,255,0.2); display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; }
+
+/* Grid Layout */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+/* Professional Cards */
+.pro-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #dfe1e6;
+    transition: box-shadow 0.2s;
+}
+
+.pro-card:hover { box-shadow: var(--card-shadow); }
+
+.pro-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.icon-bg {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+}
+.income-icon { background: #e3fcef; }
+.expense-icon { background: #ffebe6; }
+.meal-icon { background: #deebff; }
+
+.pro-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+.positive { color: var(--brand-success); background: #e3fcef; }
+.negative { color: var(--brand-danger); background: #ffebe6; }
+
+.pro-card-body h3 { font-size: 0.75rem; color: var(--text-body); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
+.pro-amount { font-size: 1.25rem; font-weight: 700; color: var(--text-heading); }
+
+/* Full Width Card */
+.full-width { grid-column: span 2; }
+.pro-card-content { display: flex; justify-content: space-between; align-items: center; }
+.meal-meta { display: flex; align-items: center; gap: 12px; }
+.meal-meta p { font-size: 0.7rem; color: var(--text-body); margin: 0; }
+.pro-amount.highlight { color: var(--brand-primary); font-size: 1.5rem; }
+
+:root {
+    --card-bg-pro: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --accent-glow: rgba(0, 122, 255, 0.4);
+}
+
+.balance-container-pro {
+    padding: 20px 0;
+    perspective: 1000px;
+}
+
+.premium-balance-card {
+    width: 100%;
+    max-width: 400px;
+    height: 220px;
+    margin: 0 auto;
+    background: var(--card-bg-pro);
+    border-radius: 28px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.4s ease;
+}
+
+.premium-balance-card:hover {
+    transform: translateY(-5px) rotateX(2deg);
+}
+
+/* Mesh Gradient Background Effect */
+.mesh-gradient {
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    z-index: 1;
+}
+
+.glass-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(1px);
+    z-index: 2;
+}
+
+.card-inner-pro {
+    position: relative;
+    z-index: 3;
+    padding: 25px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Card Header */
+.card-top-pro {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-brand {
+    color: white;
+    font-weight: 800;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.pro-label {
+    background: #ffd700;
+    color: #000;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+
+/* Balance Center */
+.balance-main-pro {
+    margin-top: 10px;
+}
+
+.balance-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    margin: 0;
+    font-weight: 500;
+}
+
+.balance-value {
+    color: white;
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin: 5px 0;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Card Footer */
+.card-bottom-pro {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.small-label {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 10px;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.holder-name {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 2px 0 0;
+}
+
+.card-dots {
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    letter-spacing: 2px;
+}
 

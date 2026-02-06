@@ -22,7 +22,7 @@
             <!-- Dashboard Page -->
             <div id="dashboard-page" class="page">
                 <h2>Dashboard</h2>
-                <div class="dashboard-cards">
+                <!-- <div class="dashboard-cards">
                     <div class="dashboard-card income">
                         <h3> Total mess Fund</h3>
                         <div class="card-value text-success">₹<%= incomeTotal %></div>
@@ -43,7 +43,59 @@
                         <div class="card-value text-danger"> ₹<%= perMealPrice %></div>
                         <p>-5% from yesterday</p>
                     </div>
+                </div> -->
+
+                                
+                <div class="pro-dashboard">
+                    <div class="main-balance-card">
+                        <div class="balance-info">
+                            <span class="label-pro">Total Available Balance</span>
+                            <h1 class="amount-pro">₹<%= availableBalance %></h1>
+                            <div class="balance-tag">Live Updates Enabled</div>
+                        </div>
+                        <div class="balance-visual">
+                            <div class="circle-blur"></div>
+                        </div>
+                    </div>
+
+                    <div class="stats-container">
+                        <div class="pro-card">
+                            <div class="pro-card-header">
+                                <span class="icon-bg income-icon">📥</span>
+                                <span class="pro-badge positive">+12.5%</span>
+                            </div>
+                            <div class="pro-card-body">
+                                <h3>Total Mess Fund</h3>
+                                <div class="pro-amount">₹<%= incomeTotal %></div>
+                            </div>
+                        </div>
+
+                        <div class="pro-card">
+                            <div class="pro-card-header">
+                                <span class="icon-bg expense-icon">📤</span>
+                                <span class="pro-badge negative">-4.2%</span>
+                            </div>
+                            <div class="pro-card-body">
+                                <h3>Total Expenses</h3>
+                                <div class="pro-amount">₹<%= expenseTotal %></div>
+                            </div>
+                        </div>
+
+                        <div class="pro-card full-width">
+                            <div class="pro-card-content">
+                                <div class="meal-meta">
+                                    <span class="icon-bg meal-icon">🍛</span>
+                                    <div class="text-group">
+                                        <h3>Per Meal Price</h3>
+                                        <p>Optimized for current market rate</p>
+                                    </div>
+                                </div>
+                                <div class="pro-amount highlight">₹<%= perMealPrice %></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
 
                 <div class="chart-container">
                     <h3>Weekly Summary</h3>
