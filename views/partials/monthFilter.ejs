@@ -43,22 +43,32 @@
     const trigger = document.getElementById('dateTrigger');
     const modal = document.getElementById('dateModal');
 
-    // ক্লিক করলে টগল হবে
+    // Toggle modal
     trigger.addEventListener('click', (e) => {
         e.stopPropagation();
         modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
     });
 
-    // বাইরে ক্লিক করলে বন্ধ হবে
+    // Outside click close
     document.addEventListener('click', (e) => {
-        if (!modal.contains(e.target) && e.target !== trigger) {
+        if (!modal.contains(e.target) && !trigger.contains(e.target)) {
             modal.style.display = 'none';
         }
     });
 
-    // সিলেক্ট করলে অটোমেটিক সাবমিট
+    // ✅ CURRENT PAGE-এই FILTER APPLY হবে
     function submitForm() {
-        document.getElementById('filterForm').submit();
+        const form = document.getElementById('filterForm');
+
+        const year = form.querySelector('select[name="year"]').value;
+        const month = form.querySelector('input[name="month"]:checked').value;
+
+        const url = new URL(window.location.href);
+
+        url.searchParams.set('year', year);
+        url.searchParams.set('month', month);
+
+        window.location.href = url.toString();
     }
 
     function closeModal() {
