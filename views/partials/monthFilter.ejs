@@ -40,28 +40,28 @@
 </div>
 
 <script>
-  const trigger = document.getElementById('dateTrigger');
-const modal = document.getElementById('dateModal');
+    const trigger = document.getElementById('dateTrigger');
+    const modal = document.getElementById('dateModal');
 
-// ক্লিক করলে টগল হবে
-trigger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-});
+    // ক্লিক করলে টগল হবে
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+    });
 
-// বাইরে ক্লিক করলে বন্ধ হবে
-document.addEventListener('click', (e) => {
-    if (!modal.contains(e.target) && e.target !== trigger) {
+    // বাইরে ক্লিক করলে বন্ধ হবে
+    document.addEventListener('click', (e) => {
+        if (!modal.contains(e.target) && e.target !== trigger) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // সিলেক্ট করলে অটোমেটিক সাবমিট
+    function submitForm() {
+        document.getElementById('filterForm').submit();
+    }
+
+    function closeModal() {
         modal.style.display = 'none';
     }
-});
-
-// সিলেক্ট করলে অটোমেটিক সাবমিট
-function submitForm() {
-    document.getElementById('filterForm').submit();
-}
-
-function closeModal() {
-    modal.style.display = 'none';
-}
 </script>
