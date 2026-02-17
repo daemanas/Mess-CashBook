@@ -1,3 +1,5 @@
+require('dotenv').config(); // 🔥 MUST be on top
+
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 // const generateOtp = require('../util/generateOtp');
