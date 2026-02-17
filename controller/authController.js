@@ -67,14 +67,16 @@ exports.postGenerateOtp = async (req, res) => {
           { upsert: true }
       );
 
-      transporter.sendMail(mailOptions, (error, info) =>{
-          if(error) {
-              console.log('Error', error)
-          } else {
-              console.log('Email send'+ info.response);
-              res.redirect('/register')
-          }
-      })
+      // transporter.sendMail(mailOptions, (error, info) =>{
+      //     if(error) {
+      //         console.log('Error', error)
+      //     } else {
+      //         console.log('Email send'+ info.response);
+      //         res.redirect('/register')
+      //     }
+      // })
+      await transporter.sendMail(mailOptions);
+      res.redirect('/register')
   } catch (error) {
      console.log(error)
       res.render('auth/generateOTP',
