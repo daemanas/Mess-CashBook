@@ -60,7 +60,7 @@ exports.postGenerateOtp = async (req, res) => {
           subject:"this is a testing",
           html:`<h1> hello Your OTP is - ${otp}. This otp valid for 5 minits</h1>`
       };
-
+    
 
       await User.findOneAndUpdate(
           { email },
