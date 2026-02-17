@@ -38,14 +38,20 @@ exports.postGenerateOtp = async (req, res) => {
 
       const transporter = nodemailer.createTransport({
           host: "smtp.gmail.com",
-          port: 587,
-          secure: false,
-          service: "gmail",
+          // port: 587,
+          port: 465,
+          secure: true,
+          // service: "gmail",
           auth: {
               user: process.env.MAIL_USER,
               pass: process.env.MAIL_PASS
+          },
+          tls: {
+            rejectUnauthorized : false
           }
       });
+      await transporter.verify();
+      console.log("SMTP CONNECTED")
       
 
       const mailOptions = {
