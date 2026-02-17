@@ -20,134 +20,134 @@ exports.getGenerateOtp =(req, res) => {
 
 // global.otpStore ={};
 
-// exports.postGenerateOtp = async (req, res) => {
+exports.postGenerateOtp = async (req, res) => {
 
 
-//   try {
+  try {
 
-//       const {email} = req.body;
+      const {email} = req.body;
 
-//       if (!email) {
-//           return res.render('auth/generateOTP', {
-//               otp: null,
-//               email: null,
-//               error: 'Email is required'
-//           });
-//       }
-//       const otp = generateOTP();
+      if (!email) {
+          return res.render('auth/generateOTP', {
+              otp: null,
+              email: null,
+              error: 'Email is required'
+          });
+      }
+      const otp = generateOTP();
 
-//       const transporter = nodemailer.createTransport({
-//           host: "smtp.gmail.com",
-//           // port: 587,
-//           port: 465,
-//           secure: true,
-//           // service: "gmail",
-//           auth: {
-//               user: process.env.MAIL_USER,
-//               pass: process.env.MAIL_PASS
-//           },
-//           tls: {
-//             rejectUnauthorized : false
-//           }
-//       });
-//       await transporter.verify();
-//       console.log("SMTP CONNECTED")
+      const transporter = nodemailer.createTransport({
+          host: "smtp-relay.brevo.com",
+          port: 587,
+          // port: 465,
+          secure: false,
+          service: "gmail",
+          auth: {
+              user: process.env.MAIL_USER,
+              pass: process.env.MAIL_PASS
+          },
+          tls: {
+            rejectUnauthorized : false
+          }
+      });
+      await transporter.verify();
+      console.log("SMTP CONNECTED")
       
 
-//       const mailOptions = {
-//           from : process.env.MAIL_USER,
-//           to: email,
-//           subject:"this is a testing",
-//           html:`<h1> hello Your OTP is - ${otp}. This otp valid for 5 minits</h1>`
-//       };
+      const mailOptions = {
+          from : process.env.MAIL_USER,
+          to: email,
+          subject:"this is a testing",
+          html:`<h1> hello Your OTP is - ${otp}. This otp valid for 5 minits</h1>`
+      };
     
 
-//       await User.findOneAndUpdate(
-//           { email },
-//           {
-//               email,
-//               otp,
-//               otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
-//               isVerified: false
-//           },
-//           { upsert: true }
-//       );
+      await User.findOneAndUpdate(
+          { email },
+          {
+              email,
+              otp,
+              otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
+              isVerified: false
+          },
+          { upsert: true }
+      );
 
-//       transporter.sendMail(mailOptions, (error, info) =>{
-//           if(error) {
-//               console.log('Error', error)
-//           } else {
-//               console.log('Email send'+ info.response);
-//           }
-//       })
-//       // await transporter.sendMail(mailOptions);
-//       // res.redirect('/register')
-//   } catch (error) {
-//      console.log(error)
-//       res.render('auth/generateOTP',
-//         {error : "Failed to send otp"}
-//       )
-//   }
-
-// }
-
-exports.postGenerateOtp = async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.render('auth/generateOTP', {
-        otp: null,
-        email: null,
-        error: 'Email is required'
-      });
-    }
-
-    const otp = generateOTP();
-
-    // ট্রান্সপোর্টার সেটআপ
-    const transporter = nodemailer.createTransport({
-      service: 'gmail', // হোস্ট এবং পোর্ট আলাদা করে দেওয়ার চেয়ে এটি বেশি নিরাপদ
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS // নিশ্চিত করুন এটি ১৬ ডিজিটের App Password
-      }
-    });
-
-    // ইমেইল অপশন
-    const mailOptions = {
-      from: process.env.MAIL_USER,
-      to: email,
-      subject: "OTP Verification",
-      html: `<h1>Hello, Your OTP is - ${otp}. This otp is valid for 5 minutes.</h1>`
-    };
-
-    // ডাটাবেস আপডেট
-    await User.findOneAndUpdate(
-      { email },
-      {
-        email,
-        otp,
-        otpExpires: Date.now() + 5 * 60 * 1000,
-        isVerified: false
-      },
-      { upsert: true }
-    );
-
-    // ইমেইল পাঠানো (অবশ্যই await ব্যবহার করবেন)
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent: ' + info.response);
-
-    // সফল হলে রিডাইরেক্ট বা রেসপন্স
-    res.redirect('/register'); // অথবা আপনার প্রয়োজন মতো রেসপন্স দিন
-
+      transporter.sendMail(mailOptions, (error, info) =>{
+          if(error) {
+              console.log('Error', error)
+          } else {
+              console.log('Email send'+ info.response);
+          }
+      })
+      // await transporter.sendMail(mailOptions);
+      // res.redirect('/register')
   } catch (error) {
-    console.error('Nodemailer Error:', error);
-    res.render('auth/generateOTP', {
-      error: "Failed to send OTP. Please try again."
-    });
+     console.log(error)
+      res.render('auth/generateOTP',
+        {error : "Failed to send otp"}
+      )
   }
-};
+
+}
+
+// exports.postGenerateOtp = async (req, res) => {
+//   try {
+//     const { email } = req.body;
+
+//     if (!email) {
+//       return res.render('auth/generateOTP', {
+//         otp: null,
+//         email: null,
+//         error: 'Email is required'
+//       });
+//     }
+
+//     const otp = generateOTP();
+
+//     // ট্রান্সপোর্টার সেটআপ
+//     const transporter = nodemailer.createTransport({
+//       service: 'gmail', // হোস্ট এবং পোর্ট আলাদা করে দেওয়ার চেয়ে এটি বেশি নিরাপদ
+//       auth: {
+//         user: process.env.MAIL_USER,
+//         pass: process.env.MAIL_PASS // নিশ্চিত করুন এটি ১৬ ডিজিটের App Password
+//       }
+//     });
+
+//     // ইমেইল অপশন
+//     const mailOptions = {
+//       from: process.env.MAIL_USER,
+//       to: email,
+//       subject: "OTP Verification",
+//       html: `<h1>Hello, Your OTP is - ${otp}. This otp is valid for 5 minutes.</h1>`
+//     };
+
+//     // ডাটাবেস আপডেট
+//     await User.findOneAndUpdate(
+//       { email },
+//       {
+//         email,
+//         otp,
+//         otpExpires: Date.now() + 5 * 60 * 1000,
+//         isVerified: false
+//       },
+//       { upsert: true }
+//     );
+
+//     // ইমেইল পাঠানো (অবশ্যই await ব্যবহার করবেন)
+//     const info = await transporter.sendMail(mailOptions);
+//     console.log('Email sent: ' + info.response);
+
+//     // সফল হলে রিডাইরেক্ট বা রেসপন্স
+//     res.redirect('/register'); // অথবা আপনার প্রয়োজন মতো রেসপন্স দিন
+
+//   } catch (error) {
+//     console.error('Nodemailer Error:', error);
+//     res.render('auth/generateOTP', {
+//       error: "Failed to send OTP. Please try again."
+//     });
+//   }
+// };
 
 // exports.getCreateOtp = (req, res) => {
 //     res.render('auth/create-otp', { otp: null, email: null });
