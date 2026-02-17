@@ -4,10 +4,11 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const authController = require('../controller/authController');
 
+router.get('/generateOTP', authController.getGenerateOtp);
+router.post('/generateOTP', authController.postGenerateOtp);
 
-
-router.get('/create-mess-DA@1-otp', authController.getCreateOtp);
-router.post('/generate-otp', authController.generateOtp);
+// router.get('/create-mess-DA@1-otp', authController.getCreateOtp);
+// router.post('/generate-otp', authController.generateOtp);
 
 router.get('/register', authController.getRegister);
 router.post('/register', authController.postRegister);

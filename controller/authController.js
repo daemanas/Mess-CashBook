@@ -1,59 +1,135 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const generateOtp = require('../util/generateOtp');
+// const generateOtp = require('../util/generateOtp');
 const generateGroupId = require('../util/generateGroupId');
-
+const nodemailer = require('nodemailer');
 
 /* ======================
    CREATE OTP PAGE
 ====================== */
-exports.getCreateOtp = (req, res) => {
-    res.render('auth/create-otp', { otp: null, email: null });
-};
+
+function generateOTP() {
+    return Math.floor(100000 + Math.random()*900000)
+}
+
+exports.getGenerateOtp =(req, res) => {
+  res.render('auth/generateOTP');
+}
+
+// global.otpStore ={};
+
+exports.postGenerateOtp = async (req, res) => {
+
+
+  try {
+
+      const {email} = req.body;
+
+      if (!email) {
+          return res.render('auth/generateOTP', {
+              otp: null,
+              email: null,
+              error: 'Email is required'
+          });
+      }
+      const otp = generateOTP();
+
+      const transporter = nodemailer.createTransport({
+          host: "smtp.gmail.com",
+          port: 587,
+          secure: false,
+          service: "gmail",
+          auth: {
+              user: process.env.MAIL_USER,
+              pass: process.env.MAIL_PASS
+          }
+      });
+      
+
+      const mailOptions = {
+          from : process.env.MAIL_USER,
+          to: email,
+          subject:"this is a testing",
+          html:`<h1> hello Your OTP is - ${otp}. This otp valid for 5 minits</h1>`
+      };
+
+
+      await User.findOneAndUpdate(
+          { email },
+          {
+              email,
+              otp,
+              otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
+              isVerified: false
+          },
+          { upsert: true }
+      );
+
+      transporter.sendMail(mailOptions, (error, info) =>{
+          if(error) {
+              console.log('Error', error)
+          } else {
+              console.log('Email send'+ info.response);
+              res.redirect('/register')
+          }
+      })
+  } catch (error) {
+     console.log(error)
+      res.render('auth/generateOTP',
+        {error : "Failed to send otp"}
+      )
+  }
+
+}
+
+
+// exports.getCreateOtp = (req, res) => {
+//     res.render('auth/create-otp', { otp: null, email: null });
+// };
 
 /* ======================
    GENERATE OTP (NO EMAIL)
 ====================== */
-exports.generateOtp = async (req, res) => {
-    try {
-        const { email } = req.body;
+// exports.generateOtp = async (req, res) => {
+//     try {
+//         const { email } = req.body;
 
-        if (!email) {
-            return res.render('auth/create-otp', {
-                otp: null,
-                email: null,
-                error: 'Email is required'
-            });
-        }
+//         if (!email) {
+//             return res.render('auth/create-otp', {
+//                 otp: null,
+//                 email: null,
+//                 error: 'Email is required'
+//             });
+//         }
 
-        const otp = generateOtp();
+//         const otp = generateOtp();
 
-        await User.findOneAndUpdate(
-            { email },
-            {
-                email,
-                otp,
-                otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
-                isVerified: false
-            },
-            { upsert: true }
-        );
+//         await User.findOneAndUpdate(
+//             { email },
+//             {
+//                 email,
+//                 otp,
+//                 otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
+//                 isVerified: false
+//             },
+//             { upsert: true }
+//         );
 
-        // 🔥 OTP screen এ দেখানো হচ্ছে
-        res.render('auth/create-otp', {
-            otp,
-            email
-        });
+//         // 🔥 OTP screen এ দেখানো হচ্ছে
+//         res.render('auth/create-otp', {
+//             otp,
+//             email
+//         });
 
-    } catch (error) {
-        console.error(error);
-        res.render('auth/create-otp', {
-            otp: null,
-            email: null,
-            error: 'OTP generation failed'
-        });
-    }
-};
+//     } catch (error) {
+//         console.error(error);
+//         res.render('auth/create-otp', {
+//             otp: null,
+//             email: null,
+//             error: 'OTP generation failed'
+//         });
+//     }
+// };
 
 /* ======================
    REGISTER PAGE
