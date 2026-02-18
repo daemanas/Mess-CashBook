@@ -21,12 +21,83 @@ exports.getGenerateOtp =(req, res) => {
 
 // global.otpStore ={};
 
+// exports.postGenerateOtp = async (req, res) => {
+
+
+//   try {
+
+//       const {email} = req.body;
+
+//       if (!email) {
+//           return res.render('auth/generateOTP', {
+//               otp: null,
+//               email: null,
+//               error: 'Email is required'
+//           });
+//       }
+//       const otp = generateOTP();
+
+//       const transporter = nodemailer.createTransport({
+//           host: "smtp-relay.brevo.com",
+//           port: 587,
+//           secure: false,
+//           service: "gmail",
+//           auth: {
+//               user: process.env.MAIL_USER ,
+//               pass:process.env.MAIL_PASS
+//           }
+//       });
+      
+
+//       const mailOptions = {
+//           from : process.env.MAIL_FROM ,
+//           to: email,
+//           subject:"this is a testing",
+//           html:`<h1> hello Your OTP is - ${otp}. This otp valid for 5 minits</h1>`
+//       };
+//       await User.findOneAndUpdate(
+//           { email },
+//           {
+//               email,
+//               otp,
+//               otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
+//               isVerified: false
+//           },
+//           { upsert: true }
+//       );
+
+//       transporter.sendMail(mailOptions, (error, info) =>{
+//           if(error) {
+//               console.log('Error', error)
+//           } else {
+//               console.log('Email send'+ info.response);
+//               res.redirect('/register')
+//           }
+//       })
+//   } catch (error) {
+//      console.log(error)
+//       res.render('auth/generateOTP',
+//         {error : "Failed to send otp"}
+//       )
+//   }
+
+// }
+
+const nodemailer = require("nodemailer");
+const User = require("../models/User");
+
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+exports.getGenerateOtp = (req, res) => {
+  res.render('auth/generateOTP');
+};
+
 exports.postGenerateOtp = async (req, res) => {
-
-
   try {
 
-      const {email} = req.body;
+      const { email } = req.body;
 
       if (!email) {
           return res.render('auth/generateOTP', {
@@ -35,54 +106,59 @@ exports.postGenerateOtp = async (req, res) => {
               error: 'Email is required'
           });
       }
+
       const otp = generateOTP();
 
+      // 🔥 Brevo SMTP (Gmail removed)
       const transporter = nodemailer.createTransport({
-          host: "smtp-relay.brevo.com",
-          port: 587,
+          host: process.env.SMTP_HOST,   // smtp-relay.brevo.com
+          port: process.env.SMTP_PORT,   // 587
           secure: false,
-          service: "gmail",
           auth: {
               user: process.env.MAIL_USER ,
               pass:process.env.MAIL_PASS
           }
       });
-      
 
       const mailOptions = {
-          from : process.env.MAIL_FROM ,
+          from: `MessBook <${process.env.MAIL_FROM}>`,
           to: email,
-          subject:"this is a testing",
-          html:`<h1> hello Your OTP is - ${otp}. This otp valid for 5 minits</h1>`
+          subject: "Email Verification OTP",
+          html: `
+            <div style="font-family:sans-serif">
+              <h2>Verify Your Account</h2>
+              <p>Your OTP is:</p>
+              <h1 style="letter-spacing:4px">${otp}</h1>
+              <p>This OTP valid for 5 minutes</p>
+            </div>
+          `
       };
+
+      // OTP store (user verify before login)
       await User.findOneAndUpdate(
           { email },
           {
               email,
               otp,
-              otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
+              otpExpires: Date.now() + 5 * 60 * 1000,
               isVerified: false
           },
           { upsert: true }
       );
 
-      transporter.sendMail(mailOptions, (error, info) =>{
-          if(error) {
-              console.log('Error', error)
-          } else {
-              console.log('Email send'+ info.response);
-              res.redirect('/register')
-          }
-      })
+      // await ব্যবহার (callback removed)
+      await transporter.sendMail(mailOptions);
+
+      console.log("OTP SENT TO:", email);
+      res.redirect('/register');
+
   } catch (error) {
-     console.log(error)
-      res.render('auth/generateOTP',
-        {error : "Failed to send otp"}
-      )
+      console.log("MAIL ERROR:", error);
+      res.render('auth/generateOTP', {
+        error: "Failed to send otp"
+      });
   }
-
-}
-
+};
 
 
 
