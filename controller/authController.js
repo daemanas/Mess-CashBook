@@ -1,5 +1,5 @@
 
-require('dotenv').config(); // 🔥 MUST be on top
+   require('dotenv').config(); // 🔥 MUST be on top
 
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
@@ -38,7 +38,7 @@ exports.postGenerateOtp = async (req, res) => {
       const otp = generateOTP();
 
       const transporter = nodemailer.createTransport({
-          host: "smtp.gmail.com",
+          host: "smtp-relay.brevo.com",
           port: 587,
           secure: false,
           service: "gmail",
@@ -50,7 +50,7 @@ exports.postGenerateOtp = async (req, res) => {
       
 
       const mailOptions = {
-          from : process.env.MAIL_USER ,
+          from : process.env.MAIL_FROM ,
           to: email,
           subject:"this is a testing",
           html:`<h1> hello Your OTP is - ${otp}. This otp valid for 5 minits</h1>`
