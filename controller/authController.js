@@ -11,13 +11,13 @@ const nodemailer = require('nodemailer');
    CREATE OTP PAGE
 ====================== */
 
-function generateOTP() {
-    return Math.floor(100000 + Math.random()*900000)
-}
+// function generateOTP() {
+//     return Math.floor(100000 + Math.random()*900000)
+// }
 
-exports.getGenerateOtp =(req, res) => {
-  res.render('auth/generateOTP');
-}
+// exports.getGenerateOtp =(req, res) => {
+//   res.render('auth/generateOTP');
+// }
 
 // global.otpStore ={};
 
@@ -82,9 +82,6 @@ exports.getGenerateOtp =(req, res) => {
 //   }
 
 // }
-
-const nodemailer = require("nodemailer");
-const User = require("../models/User");
 
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
