@@ -109,8 +109,10 @@ exports.postGenerateOtp = async (req, res) => {
       // 🔥 Brevo SMTP (Gmail removed)
       const transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST,   // smtp-relay.brevo.com
-          port: process.env.SMTP_PORT,   // 587
+          port: 2525,   // 587
           secure: false,
+          requireTLS:true,
+          connectionTimeout:10000,
           auth: {
               user: process.env.MAIL_USER ,
               pass:process.env.MAIL_PASS
