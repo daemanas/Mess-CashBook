@@ -2416,7 +2416,7 @@ table tbody tr:hover {
 .full-width { grid-column: span 2; }
 .pro-card-content { display: flex; justify-content: space-between; align-items: center; }
 .meal-meta { display: flex; align-items: center; gap: 12px; }
-.meal-meta p { font-size: 0.7rem; color: var(--text-body); margin: 0; }
+.meal-meta p { font-size: 0.9rem; color: var(--text-body); margin: 0; }
 .pro-amount.highlight { color: var(--brand-primary); font-size: 1.5rem; }
 
 :root {
