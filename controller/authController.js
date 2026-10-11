@@ -237,6 +237,33 @@ exports.getForgotPassword = (req, res) => {
   res.render('auth/forgot-password');
 };
 
+// exports.postForgotPassword = async (req, res) => {
+//   try {
+//     const { email } = req.body;
+
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.send('No account found with this email');
+//     }
+
+//     const otp = generateOtp();
+
+//     user.otp = otp;
+//     user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
+//     await user.save();
+
+//     // 🔴 Email না চাইলে screen এ দেখাও
+//     res.render('auth/reset-password', {
+//       email,
+//       otpShown: otp   // demo purpose
+//     });
+
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).send('OTP generation failed');
+//   }
+// };
+
 exports.postForgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -246,13 +273,12 @@ exports.postForgotPassword = async (req, res) => {
       return res.send('No account found with this email');
     }
 
-    const otp = generateOtp();
+    const otp = generateOTP(); // Use the local generateOTP() function
 
     user.otp = otp;
     user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
     await user.save();
 
-    // 🔴 Email না চাইলে screen এ দেখাও
     res.render('auth/reset-password', {
       email,
       otpShown: otp   // demo purpose
@@ -263,7 +289,6 @@ exports.postForgotPassword = async (req, res) => {
     res.status(500).send('OTP generation failed');
   }
 };
-
 
 exports.getResetPassword = (req, res) => {
   res.render('auth/reset-password', {

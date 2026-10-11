@@ -43,7 +43,7 @@ app.use(
             maxAge: 1000 * 60 * 60 * 24
         }
     })
-);
+); 
 
 app.use((req, res, next) => {
     res.locals.currentPath = req.path;
