@@ -3007,6 +3007,17 @@ svg {
     }
 }
 
+@media (max-width: 768px) {
+    .topbar-context {
+        margin-right: 0;
+    }
+
+    .topbar-right {
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+}
+
 @media (max-width: 640px) {
     .page {
         padding: 17px 14px 100px;
@@ -3194,9 +3205,10 @@ svg {
         height: 13px;
     }
 
-    .topbar-context {
+     /* .topbar-context {
         display: none;
-    }
+    } */
+
 }
 
 @media (prefers-reduced-motion: reduce) {
