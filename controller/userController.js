@@ -804,7 +804,7 @@ exports.getFinalSettlement = async (req, res, next) => {
                 if (!req.session.settlementEmailCsrfToken) {
                     req.session.settlementEmailCsrfToken = crypto.randomBytes(32).toString('hex');
                 }
-                groupMembers = await User.find({ groupId: admin.groupId, role: 'member' })
+                groupMembers = await User.find({ groupId: admin.groupId })
                     .select('name email')
                     .sort({ name: 1 })
                     .lean();
@@ -982,7 +982,7 @@ exports.postEmailFinalSettlement = async (req, res, next) => {
         }
 
         try {
-            const members = await User.find({ groupId, role: 'member' })
+            const members = await User.find({ groupId })
                 .select('name email')
                 .sort({ name: 1 })
                 .lean();
