@@ -17,12 +17,15 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "connect-mongo": "^6.0.0",
+    "dejavu-fonts-ttf": "^2.37.3",
     "dotenv": "^17.3.1",
     "ejs": "^3.1.10",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-session": "^1.18.2",
     "mongodb": "^7.0.0",
     "mongoose": "^9.1.2",
-    "nodemailer": "^10.6.0"
+    "nodemailer": "^10.6.0",
+    "pdfkit": "^0.20.2"
   }
 }

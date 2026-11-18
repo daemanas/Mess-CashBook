@@ -18,6 +18,65 @@
     </div>
 </div>
 
+<% if (isGroupAdmin) { %>
+    <div class="settlement-export-actions" aria-label="Settlement report actions">
+        <a class="btn btn-secondary btn-sm" href="/finalSettlement/export/pdf?month=<%= month %>&amp;year=<%= year %>">
+            <%- include('../partials/icon', { name: 'download' }) %>
+            Download PDF
+        </a>
+        <a class="btn btn-secondary btn-sm" href="/finalSettlement/export/excel?month=<%= month %>&amp;year=<%= year %>">
+            <%- include('../partials/icon', { name: 'download' }) %>
+            Download Excel
+        </a>
+        <button class="btn btn-primary btn-sm" type="button" data-email-modal-open aria-haspopup="dialog" aria-controls="settlement-email-modal" aria-expanded="false">
+            <%- include('../partials/icon', { name: 'mail' }) %>
+            Email All Members
+        </button>
+    </div>
+    <% if (!groupMembers.length || groupMembers.some(member => !member.valid)) { %>
+        <div class="alert alert-info settlement-delivery-status" role="status">
+            <%- include('../partials/icon', { name: 'info' }) %>
+            <span>
+                <% if (groupMembers.length) { %>
+                    <%= groupMembers.filter(member => !member.valid).length %> member(s) have missing or invalid email addresses and will be skipped.
+                <% } else { %>
+                    There are no group members available to receive this report.
+                <% } %>
+            </span>
+        </div>
+    <% } %>
+
+    <% if (emailResult) { %>
+        <div class="alert <%= emailResult.status === 'sent' ? 'alert-success' : (emailResult.status === 'failed' ? 'alert-error' : 'alert-info') %> settlement-delivery-status" role="status">
+            <%- include('../partials/icon', { name: emailResult.status === 'sent' ? 'check' : 'info' }) %>
+            <div>
+                <strong>
+                    <%= emailResult.status === 'sent' ? 'Settlement email delivery complete' : (emailResult.status === 'partial' ? 'Settlement email delivery partially completed' : (emailResult.status === 'sending' ? 'Settlement emails are still processing' : 'Settlement email delivery failed')) %>
+                </strong>
+                <p><%= periodLabel %> · <%= emailResult.recipients.filter(recipient => recipient.status === 'sent').length %> sent · <%= emailResult.recipients.filter(recipient => recipient.status === 'failed').length %> failed</p>
+                <% if (emailResult.recipients.some(recipient => recipient.status === 'failed')) { %>
+                    <ul class="settlement-delivery-list">
+                        <% emailResult.recipients.filter(recipient => recipient.status === 'failed').forEach(recipient => { %>
+                            <li><%= recipient.name %> (<%= recipient.email %>): <%= recipient.error || 'Delivery failed' %></li>
+                        <% }) %>
+                    </ul>
+                <% } %>
+                <% if (!emailResult.recipients.length && !emailResult.skippedRecipients.length && emailResult.status === 'failed') { %>
+                    <p class="settlement-warning-note">No group member email addresses were available for this report.</p>
+                <% } %>
+                <% if (emailResult.skippedRecipients.length) { %>
+                    <p class="settlement-warning-note">Skipped <%= emailResult.skippedRecipients.length %> member(s) with missing or invalid email addresses.</p>
+                    <ul class="settlement-delivery-list">
+                        <% emailResult.skippedRecipients.forEach(recipient => { %>
+                            <li><%= recipient.name %> (<%= recipient.email || 'no email address' %>): <%= recipient.reason %></li>
+                        <% }) %>
+                    </ul>
+                <% } %>
+            </div>
+        </div>
+    <% } %>
+<% } %>
+
 <div class="stat-grid" style="margin-bottom: 16px;">
     <article class="stat is-expense">
         <div class="stat-top">
@@ -128,5 +187,58 @@
     <%- include('../partials/icon', { name: 'info' }) %>
     <span>“Receive” means the member paid more than their share. “Due” means they still owe the mess. Values are calculated from this month’s real records.</span>
 </div>
+
+<% if (isGroupAdmin) { %>
+    <div class="modal settlement-email-modal" id="settlement-email-modal" data-settlement-email-modal hidden>
+        <div class="modal-card settlement-email-modal-card" role="dialog" aria-modal="true" aria-labelledby="settlement-email-title">
+            <div class="settlement-modal-heading">
+                <div>
+                    <p class="eyebrow">Admin action</p>
+                    <h2 id="settlement-email-title">Email monthly settlement</h2>
+                </div>
+                <button class="icon-btn" type="button" data-email-modal-close aria-label="Close dialog">
+                    <%- include('../partials/icon', { name: 'close' }) %>
+                </button>
+            </div>
+            <p class="settlement-modal-summary"><strong><%= groupName %></strong> · <%= periodLabel %> · <%= groupMembers.length %> member(s)</p>
+            <div class="settlement-recipient-box">
+                <h3>Recipients</h3>
+                <ul>
+                    <% groupMembers.forEach(member => { %>
+                        <li>
+                            <span><%= member.name %></span>
+                            <span class="<%= member.valid ? '' : 'is-invalid' %>"><%= member.email || 'No email address' %></span>
+                        </li>
+                    <% }) %>
+                </ul>
+            </div>
+            <% if (groupMembers.some(member => !member.valid)) { %>
+                <p class="settlement-warning-note">Members with missing or invalid email addresses will be skipped.</p>
+            <% } %>
+            <form method="post" action="/finalSettlement/email" data-settlement-email-form>
+                <input type="hidden" name="month" value="<%= month %>">
+                <input type="hidden" name="year" value="<%= year %>">
+                <input type="hidden" name="requestId" value="<%= reportRequestId %>">
+                <input type="hidden" name="csrfToken" value="<%= emailCsrfToken %>">
+                <fieldset class="settlement-format-options">
+                    <legend>Attachments</legend>
+                    <label><input type="radio" name="format" value="pdf" checked> Send PDF</label>
+                    <label><input type="radio" name="format" value="pdf-excel"> Send PDF + Excel</label>
+                </fieldset>
+                <label class="settlement-confirm-check">
+                    <input type="checkbox" name="confirmSend" value="yes" required>
+                    I confirm the reporting month and recipient list.
+                </label>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" type="button" data-email-modal-close>Cancel</button>
+                    <button class="btn btn-primary" type="submit" <%= groupMembers.some(member => member.valid) ? '' : 'disabled' %>>
+                        <%- include('../partials/icon', { name: 'mail' }) %>
+                        Send Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+<% } %>
 
 <%- include('../partials/layout-bottom') %>

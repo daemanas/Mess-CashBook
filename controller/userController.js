@@ -1,19 +1,25 @@
 const User = require('../models/User');
+const SettlementEmail = require('../models/SettlementEmail');
 const bcrypt = require('bcryptjs');
+const crypto = require('node:crypto');
 const MoneyAdd = require('../models/moneyAdd');
 const VagetableExpense = require('../models/moneyExpenses');
 const MealUser = require('../models/mealUser');
+const {
+    createPeriod,
+    getFinalSettlementData,
+    parseStrictPeriod,
+    round2,
+    titleKey
+} = require('../services/finalSettlement');
+const { buildExcel, buildPdf } = require('../util/settlementExports');
+const { sendSettlementEmail, settlementEmailTemplate } = require('../util/mailer');
 const {
     isMessAccount,
     getAccountScope,
     getRecordOwnership,
     accountId
 } = require('../util/account');
-
-const MONTH_NAMES = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-];
 
 /* =========================
    Small helpers
@@ -31,16 +37,7 @@ function parsePeriod(query = {}, now = new Date()) {
         ? requestedYear
         : now.getFullYear();
 
-    return {
-        month,
-        year,
-        monthName: MONTH_NAMES[month - 1],
-        label: `${MONTH_NAMES[month - 1]} ${year}`,
-        start: new Date(year, month - 1, 1),
-        end: new Date(year, month, 1), // exclusive
-        startDate: new Date(year, month - 1, 1),
-        endDate: new Date(year, month, 1)
-    };
+    return createPeriod(month, year);
 }
 
 function parseAmount(value) {
@@ -74,10 +71,6 @@ function dateKey(date) {
     return `${d.getFullYear()}-${month}-${day}`;
 }
 
-function titleKey(value) {
-    return String(value || '').trim().toLowerCase();
-}
-
 function escapeRegex(value) {
     return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -100,12 +93,55 @@ function currentUser(req) {
     return req.session && req.session.user ? req.session.user : null;
 }
 
-function round2(value) {
-    return Math.round((Number(value) || 0) * 100) / 100;
-}
-
 function normalizeEmail(value) {
     return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const REQUEST_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+async function authenticatedGroupAdmin(req) {
+    const sessionUser = currentUser(req);
+    if (!sessionUser || sessionUser.role !== 'admin' || !sessionUser.groupId) return null;
+
+    const admin = await User.findById(sessionUser.id)
+        .select('name email role groupId messName')
+        .lean();
+    if (!admin || admin.role !== 'admin' || !admin.groupId
+        || String(admin.groupId) !== String(sessionUser.groupId)) {
+        return null;
+    }
+    return admin;
+}
+
+function invalidPeriodResponse(res) {
+    return res.status(400).render('host/error', {
+        status: 400,
+        title: 'Invalid reporting period',
+        message: 'Choose a valid month and year before requesting a settlement report.',
+        hint: 'Month must be between 1 and 12, and year must be between 1970 and 2100.'
+    });
+}
+
+function groupNameFor(admin) {
+    return cleanText(admin.messName, 120) || 'Mess';
+}
+
+function redirectToSettlement(res, period, requestId) {
+    const params = new URLSearchParams({
+        month: String(period.month),
+        year: String(period.year),
+        emailRequestId: requestId
+    });
+    return res.redirect(`/final-settlement?${params.toString()}`);
+}
+
+function validSessionToken(actual, expected) {
+    if (typeof actual !== 'string' || typeof expected !== 'string'
+        || actual.length !== expected.length) {
+        return false;
+    }
+    return crypto.timingSafeEqual(Buffer.from(actual), Buffer.from(expected));
 }
 
 function isEmail(value) {
@@ -671,84 +707,304 @@ exports.getFinalSettlement = async (req, res, next) => {
         }
 
         const period = parsePeriod(req.query);
-        const dateRange = { $gte: period.start, $lt: period.end };
+        const data = await getFinalSettlementData({ groupId: user.groupId, period });
+        const isGroupAdmin = user.role === 'admin';
+        let groupName = cleanText(user.messName, 120) || 'Mess';
+        let groupMembers = [];
+        let emailResult = null;
+        let reportRequestId = null;
 
-        const [expenseResult, users, payments] = await Promise.all([
-            VagetableExpense.aggregate([
-                { $match: { groupId: user.groupId, entry_date: dateRange } },
-                { $group: { _id: null, total: { $sum: '$entry_amount' } } }
-            ]),
-            MealUser.find({ groupId: user.groupId }).sort({ name: 1 }),
-            MoneyAdd.aggregate([
-                { $match: { groupId: user.groupId, entry_date: dateRange } },
-                { $group: { _id: '$entry_title', totalPaid: { $sum: '$entry_amount' } } }
-            ])
-        ]);
+        if (isGroupAdmin) {
+            const admin = await authenticatedGroupAdmin(req);
+            if (admin) {
+                groupName = groupNameFor(admin);
+                reportRequestId = crypto.randomUUID();
+                if (!req.session.settlementEmailCsrfToken) {
+                    req.session.settlementEmailCsrfToken = crypto.randomBytes(32).toString('hex');
+                }
+                groupMembers = await User.find({ groupId: admin.groupId, role: 'member' })
+                    .select('name email')
+                    .sort({ name: 1 })
+                    .lean();
+                groupMembers = groupMembers.map(member => {
+                    const email = normalizeEmail(member.email);
+                    return {
+                        name: member.name || 'Member',
+                        email,
+                        valid: EMAIL_PATTERN.test(email)
+                    };
+                });
 
-        const expenseTotal = round2(expenseResult[0]?.total || 0);
-
-        let grandTotalFood = 0;
-        const usersWithFood = users.map(entry => {
-            const userFood = round2(entry.meals
-                .filter(meal => {
-                    const d = new Date(meal.date);
-                    return d >= period.start && d < period.end;
-                })
-                .reduce((sum, meal) => sum + (Number(meal.food_count) || 0), 0));
-
-            grandTotalFood += userFood;
-            return { name: entry.name, userFood };
-        });
-
-        const perMealPrice = grandTotalFood > 0 ? expenseTotal / grandTotalFood : 0;
-
-        const paymentMap = new Map();
-        payments.forEach(payment => {
-            if (!payment._id) return;
-            paymentMap.set(titleKey(payment._id), round2(payment.totalPaid));
-        });
-
-        const totals = { paid: 0, payable: 0, receive: 0, due: 0 };
-
-        const settlement = usersWithFood
-            .filter(entry => entry.userFood > 0 || paymentMap.get(titleKey(entry.name)))
-            .map(entry => {
-                const paidAmount = round2(paymentMap.get(titleKey(entry.name)) || 0);
-                const payableAmount = round2(entry.userFood * perMealPrice);
-                const finalBalance = round2(paidAmount - payableAmount);
-
-                totals.paid += paidAmount;
-                totals.payable += payableAmount;
-                if (finalBalance > 0) totals.receive += finalBalance;
-                if (finalBalance < 0) totals.due += Math.abs(finalBalance);
-
-                return {
-                    name: entry.name,
-                    foodCount: entry.userFood,
-                    paidAmount,
-                    payableAmount,
-                    finalBalance,
-                    status: finalBalance > 0 ? 'RECEIVE' : finalBalance < 0 ? 'DUE' : 'CLEAR'
-                };
-            })
-            .sort((a, b) => b.payableAmount - a.payableAmount);
+                if (typeof req.query.emailRequestId === 'string'
+                    && REQUEST_ID_PATTERN.test(req.query.emailRequestId)) {
+                    emailResult = await SettlementEmail.findOne({
+                        requestId: req.query.emailRequestId,
+                        groupId: admin.groupId,
+                        requestedBy: admin._id
+                    }).lean();
+                }
+            }
+        }
 
         return res.render('host/FinalSettlement', {
-            settlement,
-            perMealPrice: round2(perMealPrice),
-            expenseTotal,
-            grandTotalFood: round2(grandTotalFood),
-            totals: {
-                paid: round2(totals.paid),
-                payable: round2(totals.payable),
-                receive: round2(totals.receive),
-                due: round2(totals.due)
-            },
+            ...data,
             month: period.month,
             year: period.year,
             period,
-            periodLabel: period.label
+            periodLabel: period.label,
+            isGroupAdmin: Boolean(isGroupAdmin && reportRequestId),
+            groupName,
+            groupMembers,
+            reportRequestId,
+            emailCsrfToken: req.session.settlementEmailCsrfToken || null,
+            emailResult
         });
+    } catch (error) {
+        return next(error);
+    }
+};
+
+exports.getFinalSettlementPdf = async (req, res, next) => {
+    try {
+        const admin = await authenticatedGroupAdmin(req);
+        if (!admin) return deny(res, 'Only the current group admin can export the complete settlement report.');
+
+        const period = parseStrictPeriod(req.query);
+        if (!period) return invalidPeriodResponse(res);
+
+        const data = await getFinalSettlementData({
+            groupId: admin.groupId,
+            period,
+            includeDetails: true
+        });
+        const pdf = await buildPdf({
+            data,
+            groupName: groupNameFor(admin),
+            adminName: admin.name || admin.email
+        });
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename="messbook-settlement-${period.year}-${String(period.month).padStart(2, '0')}.pdf"`
+        );
+        return res.send(pdf);
+    } catch (error) {
+        return next(error);
+    }
+};
+
+exports.getFinalSettlementExcel = async (req, res, next) => {
+    try {
+        const admin = await authenticatedGroupAdmin(req);
+        if (!admin) return deny(res, 'Only the current group admin can export the complete settlement report.');
+
+        const period = parseStrictPeriod(req.query);
+        if (!period) return invalidPeriodResponse(res);
+
+        const data = await getFinalSettlementData({
+            groupId: admin.groupId,
+            period,
+            includeDetails: true
+        });
+        const workbook = await buildExcel({ data, groupName: groupNameFor(admin) });
+
+        res.setHeader(
+            'Content-Type',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename="messbook-settlement-${period.year}-${String(period.month).padStart(2, '0')}.xlsx"`
+        );
+        return res.send(Buffer.from(workbook));
+    } catch (error) {
+        return next(error);
+    }
+};
+
+exports.postEmailFinalSettlement = async (req, res, next) => {
+    let delivery;
+    let period;
+    try {
+        const admin = await authenticatedGroupAdmin(req);
+        if (!admin) return deny(res, 'Only the current group admin can email the group settlement report.');
+
+        period = parseStrictPeriod(req.body);
+        if (!period) return invalidPeriodResponse(res);
+        if (typeof req.body.requestId !== 'string' || !REQUEST_ID_PATTERN.test(req.body.requestId)) {
+            return res.status(400).render('host/error', {
+                status: 400,
+                title: 'Invalid report request',
+                message: 'The report request could not be verified. Reopen the confirmation dialog and try again.'
+            });
+        }
+        if (!validSessionToken(req.body.csrfToken, req.session.settlementEmailCsrfToken)) {
+            return res.status(403).render('host/error', {
+                status: 403,
+                title: 'Request could not be verified',
+                message: 'Reopen the settlement email confirmation and try again.'
+            });
+        }
+        const format = req.body.format;
+        if (format !== 'pdf' && format !== 'pdf-excel') {
+            return res.status(400).render('host/error', {
+                status: 400,
+                title: 'Invalid report format',
+                message: 'Choose either PDF or PDF + Excel attachments.'
+            });
+        }
+        if (req.body.confirmSend !== 'yes') {
+            return res.status(400).render('host/error', {
+                status: 400,
+                title: 'Confirmation required',
+                message: 'Confirm the recipients and report format before sending.'
+            });
+        }
+
+        const requestId = req.body.requestId;
+        const groupId = admin.groupId;
+        const existing = await SettlementEmail.findOne({ requestId }).lean();
+        if (existing) {
+            if (String(existing.groupId) !== String(groupId)
+                || String(existing.requestedBy) !== String(admin._id)
+                || existing.month !== period.month
+                || existing.year !== period.year
+                || existing.format !== format) {
+                return deny(res, 'This report request does not belong to your group.');
+            }
+            return redirectToSettlement(res, period, requestId);
+        }
+
+        try {
+            delivery = await SettlementEmail.create({
+                requestId,
+                groupId,
+                month: period.month,
+                year: period.year,
+                requestedBy: admin._id,
+                format,
+                status: 'sending'
+            });
+        } catch (error) {
+            if (error.code !== 11000) throw error;
+            const duplicate = await SettlementEmail.findOne({ requestId }).lean();
+            if (!duplicate || String(duplicate.groupId) !== String(groupId)
+                || String(duplicate.requestedBy) !== String(admin._id)
+                || duplicate.month !== period.month
+                || duplicate.year !== period.year
+                || duplicate.format !== format) {
+                return deny(res, 'This report request does not belong to your group.');
+            }
+            return redirectToSettlement(res, period, requestId);
+        }
+
+        try {
+            const members = await User.find({ groupId, role: 'member' })
+                .select('name email')
+                .sort({ name: 1 })
+                .lean();
+            const recipients = [];
+            const skippedRecipients = [];
+
+            members.forEach(member => {
+                const email = normalizeEmail(member.email);
+                if (!EMAIL_PATTERN.test(email)) {
+                    skippedRecipients.push({
+                        name: member.name || 'Member',
+                        email,
+                        reason: email ? 'Invalid email address' : 'Missing email address'
+                    });
+                    return;
+                }
+                recipients.push({ name: member.name || 'Member', email });
+            });
+
+            delivery.skippedRecipients = skippedRecipients;
+            await delivery.save();
+            if (!recipients.length) {
+                delivery.status = 'failed';
+                await delivery.save();
+                return redirectToSettlement(res, period, requestId);
+            }
+
+            const data = await getFinalSettlementData({
+                groupId,
+                period,
+                includeDetails: true
+            });
+            const groupName = groupNameFor(admin);
+            const pdf = await buildPdf({
+                data,
+                groupName,
+                adminName: admin.name || admin.email
+            });
+            const attachments = [{
+                filename: `messbook-settlement-${period.year}-${String(period.month).padStart(2, '0')}.pdf`,
+                content: pdf,
+                contentType: 'application/pdf'
+            }];
+            if (format === 'pdf-excel') {
+                const excel = await buildExcel({ data, groupName });
+                attachments.push({
+                    filename: `messbook-settlement-${period.year}-${String(period.month).padStart(2, '0')}.xlsx`,
+                    content: Buffer.from(excel),
+                    contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+            }
+
+            const safeGroupName = groupName.replace(/[\r\n]+/g, ' ').trim();
+            const subject = `MESSBOOK – Monthly Final Settlement – ${period.label} – ${safeGroupName}`;
+            for (const recipient of recipients) {
+                const memberSettlement = data.settlement.find(
+                    row => titleKey(row.name) === titleKey(recipient.name)
+                ) || {
+                    name: recipient.name,
+                    foodCount: 0,
+                    paidAmount: 0,
+                    payableAmount: 0,
+                    finalBalance: 0,
+                    status: 'CLEAR'
+                };
+                try {
+                    const info = await sendSettlementEmail({
+                        to: recipient.email,
+                        subject,
+                        html: settlementEmailTemplate({
+                            member: memberSettlement,
+                            groupName,
+                            periodLabel: period.label
+                        }),
+                        attachments
+                    });
+                    delivery.recipients.push({
+                        name: recipient.name,
+                        email: recipient.email,
+                        status: 'sent',
+                        messageId: info.messageId || null
+                    });
+                } catch (error) {
+                    delivery.recipients.push({
+                        name: recipient.name,
+                        email: recipient.email,
+                        status: 'failed',
+                        error: cleanText(error.message, 240) || 'Email delivery failed'
+                    });
+                }
+                await delivery.save();
+            }
+
+            const sentCount = delivery.recipients.filter(recipient => recipient.status === 'sent').length;
+            delivery.status = sentCount === recipients.length
+                ? 'sent'
+                : sentCount > 0 ? 'partial' : 'failed';
+            await delivery.save();
+            return redirectToSettlement(res, period, requestId);
+        } catch (error) {
+            delivery.status = delivery.recipients.length ? 'partial' : 'failed';
+            await delivery.save();
+            throw error;
+        }
     } catch (error) {
         return next(error);
     }

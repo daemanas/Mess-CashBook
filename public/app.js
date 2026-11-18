@@ -182,6 +182,38 @@
         });
     }
 
+    /* ---------- settlement email confirmation ---------- */
+    function initSettlementEmailModal() {
+        const modal = document.querySelector('[data-settlement-email-modal]');
+        const openButton = document.querySelector('[data-email-modal-open]');
+        if (!modal || !openButton) return;
+
+        const closeButtons = modal.querySelectorAll('[data-email-modal-close]');
+        const form = modal.querySelector('[data-settlement-email-form]');
+        const close = function () {
+            modal.hidden = true;
+            openButton.setAttribute('aria-expanded', 'false');
+            if (form) form.reset();
+            openButton.focus();
+        };
+
+        openButton.addEventListener('click', function () {
+            modal.hidden = false;
+            openButton.setAttribute('aria-expanded', 'true');
+            const checkbox = modal.querySelector('[name="confirmSend"]');
+            if (checkbox) checkbox.focus();
+        });
+        closeButtons.forEach(function (button) {
+            button.addEventListener('click', close);
+        });
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) close();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !modal.hidden) close();
+        });
+    }
+
     /* ---------- toast from query string ---------- */
     function initToasts() {
         const params = new URLSearchParams(window.location.search);
@@ -594,6 +626,7 @@
         initSidebar();
         initMonthPickers();
         initConfirm();
+        initSettlementEmailModal();
         initToasts();
         initExpenseRows();
         initPasswordToggles();

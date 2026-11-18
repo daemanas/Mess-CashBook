@@ -4,6 +4,7 @@ const userRouter = express.Router();
 const userController = require('../controller/userController');
 const isAuth = require('../middleware/isAuth');
 const isMess = require('../middleware/isMess');
+const isAdmin = require('../middleware/isAdmin');
 
 /* Dashboard */
 userRouter.get('/', isAuth, userController.getIndex);
@@ -22,6 +23,9 @@ userRouter.post('/add-Meal', isMess, userController.postAddMeal);
 userRouter.get('/AddedMeal', isMess, userController.getAddedMeal);
 userRouter.get('/meal-billing', isMess, userController.getMealBilling);
 userRouter.get('/final-settlement', isMess, userController.getFinalSettlement);
+userRouter.get('/finalSettlement/export/pdf', isAdmin, userController.getFinalSettlementPdf);
+userRouter.get('/finalSettlement/export/excel', isAdmin, userController.getFinalSettlementExcel);
+userRouter.post('/finalSettlement/email', isAdmin, userController.postEmailFinalSettlement);
 
 /* Account & reporting */
 userRouter.get(['/setting', '/settings'], isAuth, userController.getSetting);
