@@ -287,11 +287,115 @@
         document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
             const input = document.getElementById(button.getAttribute('data-password-toggle'));
             if (!input) return;
+            const showIcon = button.querySelector('[data-eye-show]');
+            const hideIcon = button.querySelector('[data-eye-hide]');
             button.addEventListener('click', function () {
                 const isPassword = input.type === 'password';
                 input.type = isPassword ? 'text' : 'password';
                 button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
                 button.classList.toggle('is-visible', isPassword);
+                if (showIcon) showIcon.hidden = isPassword;
+                if (hideIcon) hideIcon.hidden = !isPassword;
+            });
+        });
+    }
+
+    /* ---------- settings inline editors ---------- */
+    function initSettingsEditors() {
+        const findByName = function (selector, attribute, name) {
+            return Array.prototype.find.call(document.querySelectorAll(selector), function (element) {
+                return element.getAttribute(attribute) === name;
+            });
+        };
+
+        const passwordForm = document.querySelector('[data-password-confirm-form]');
+        if (passwordForm) {
+            const newPassword = passwordForm.querySelector('[name="newPassword"]');
+            const confirmPassword = passwordForm.querySelector('[name="confirmPassword"]');
+            if (newPassword && confirmPassword) {
+                const validateMatch = function () {
+                    confirmPassword.setCustomValidity(
+                        confirmPassword.value && confirmPassword.value !== newPassword.value
+                            ? 'Passwords do not match.'
+                            : ''
+                    );
+                };
+                newPassword.addEventListener('input', validateMatch);
+                confirmPassword.addEventListener('input', validateMatch);
+                passwordForm.addEventListener('reset', function () {
+                    window.setTimeout(validateMatch, 0);
+                });
+            }
+        }
+
+        const closeEditor = function (name) {
+            const panel = findByName('[data-settings-panel]', 'data-settings-panel', name);
+            if (!panel || panel.hidden) return;
+
+            const form = panel.tagName === 'FORM' ? panel : panel.querySelector('form');
+            if (form) {
+                form.reset();
+                form.querySelectorAll('[data-password-toggle]').forEach(function (button) {
+                    const input = document.getElementById(button.getAttribute('data-password-toggle'));
+                    if (input) input.type = 'password';
+                    button.setAttribute('aria-label', 'Show password');
+                    button.classList.remove('is-visible');
+                    const showIcon = button.querySelector('[data-eye-show]');
+                    const hideIcon = button.querySelector('[data-eye-hide]');
+                    if (showIcon) showIcon.hidden = false;
+                    if (hideIcon) hideIcon.hidden = true;
+                });
+            }
+
+            panel.classList.remove('is-open');
+            panel.classList.add('is-closing');
+            const toggle = findByName('[data-settings-edit-toggle]', 'data-settings-edit-toggle', name);
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        };
+
+        const openEditor = function (name) {
+            const panel = findByName('[data-settings-panel]', 'data-settings-panel', name);
+            if (!panel) return;
+
+            panel.hidden = false;
+            panel.classList.remove('is-closing');
+            panel.classList.add('is-open');
+            const view = findByName('[data-settings-view]', 'data-settings-view', name);
+            if (view) view.hidden = true;
+            const toggle = findByName('[data-settings-edit-toggle]', 'data-settings-edit-toggle', name);
+            if (toggle) toggle.setAttribute('aria-expanded', 'true');
+            const firstInput = panel.querySelector('input');
+            if (firstInput) firstInput.focus();
+        };
+
+        document.querySelectorAll('[data-settings-panel]').forEach(function (panel) {
+            const name = panel.getAttribute('data-settings-panel');
+            panel.addEventListener('animationend', function (event) {
+                if (event.target !== panel || !panel.classList.contains('is-closing')) return;
+                panel.hidden = true;
+                panel.classList.remove('is-closing');
+                const view = findByName('[data-settings-view]', 'data-settings-view', name);
+                if (view) view.hidden = false;
+            });
+            if (!panel.hidden) {
+                panel.classList.add('is-open');
+                const view = findByName('[data-settings-view]', 'data-settings-view', name);
+                if (view) view.hidden = true;
+            }
+        });
+
+        document.querySelectorAll('[data-settings-edit-toggle]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                const name = button.getAttribute('data-settings-edit-toggle');
+                const panel = findByName('[data-settings-panel]', 'data-settings-panel', name);
+                if (panel && !panel.hidden) closeEditor(name);
+                else openEditor(name);
+            });
+        });
+
+        document.querySelectorAll('[data-settings-edit-cancel]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                closeEditor(button.getAttribute('data-settings-edit-cancel'));
             });
         });
     }
@@ -493,6 +597,7 @@
         initToasts();
         initExpenseRows();
         initPasswordToggles();
+        initSettingsEditors();
         initRegistration();
         initCounters();
         initPageTransitions();

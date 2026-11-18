@@ -30,7 +30,7 @@
                 <span>Reports</span>
             </a>
         <% } %>
-        <a class="bottom-nav-item <%= currentPath === '/setting' ? 'is-active' : '' %>" href="/setting">
+        <a class="bottom-nav-item <%= currentPath === '/setting' || currentPath === '/settings' ? 'is-active' : '' %>" href="/settings">
             <%- include('icon', { name: 'settings' }) %>
             <span>Settings</span>
         </a>

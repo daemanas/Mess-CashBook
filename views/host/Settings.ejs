@@ -2,14 +2,15 @@
     const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const roleLabel = profile.role === 'admin' ? 'Mess admin' : (profile.role === 'member' ? 'Mess member' : 'Personal');
     const netLifetime = Number(lifetimeIncome || 0) - Number(lifetimeExpense || 0);
+    const formatDate = (date) => date ? new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Unavailable';
 %>
 <%- include('../partials/layout-top', { pageTitle: 'Settings' }) %>
 
-<div class="page-head">
+<div class="page-head settings-page-head">
     <div>
         <p class="eyebrow">Account</p>
         <h1 class="page-title">Settings</h1>
-        <p class="page-sub">Your profile, account type and lifetime activity at a glance.</p>
+        <p class="page-sub">Your profile, security and account details.</p>
     </div>
     <div class="page-actions">
         <% if (isGroupAccount) { %>
@@ -21,50 +22,183 @@
     </div>
 </div>
 
-<div class="grid-2 grid-top">
-    <section class="card">
+<% if (notice) { %>
+    <div class="alert alert-success settings-alert" role="status">
+        <%- include('../partials/icon', { name: 'check' }) %>
+        <div><strong>All set</strong><%= notice %></div>
+    </div>
+<% } %>
+<% if (error) { %>
+    <div class="alert alert-error settings-alert" role="alert">
+        <%- include('../partials/icon', { name: 'alert' }) %>
+        <div><strong>Could not save changes</strong><%= error %></div>
+    </div>
+<% } %>
+
+<div class="settings-grid">
+    <section class="card settings-card">
         <div class="card-head">
             <div>
-                <h2>Profile</h2>
-                <p>Details are managed when you register.</p>
+                <h2>Personal information</h2>
+                <p>Your profile and sign-in email.</p>
             </div>
-            <span class="badge <%= isGroupAccount ? (profile.role === 'admin' ? 'badge-violet' : 'badge-info') : 'badge-success' %>">
-                <%= roleLabel %>
-            </span>
+            <button class="btn btn-secondary btn-sm settings-edit-button" type="button"
+                    data-settings-edit-toggle="profile" aria-controls="profile-edit-form"
+                    aria-expanded="<%= activeEdit === 'profile' ? 'true' : 'false' %>">
+                <%- include('../partials/icon', { name: 'edit' }) %>
+                Edit Profile
+            </button>
+        </div>
+        <div class="card-body">
+            <dl class="detail-list settings-readonly" data-settings-view="profile" <%= activeEdit === 'profile' ? 'hidden' : '' %>>
+                <div class="detail-row"><dt>Personal name</dt><dd><%= profile.name || '—' %></dd></div>
+                <div class="detail-row"><dt>Email address</dt><dd><%= profile.email || '—' %></dd></div>
+                <div class="detail-row"><dt>Account type / role</dt><dd><%= isGroupAccount ? roleLabel : 'Personal account' %></dd></div>
+            </dl>
+            <form class="form settings-form settings-edit-panel" id="profile-edit-form"
+                  data-settings-panel="profile" action="/settings/update-profile" method="POST"
+                  <%= activeEdit === 'profile' ? '' : 'hidden' %>>
+                <div class="field">
+                    <label class="label" for="profile-name">Personal name</label>
+                    <input class="input" id="profile-name" name="name" type="text" value="<%= profile.name || '' %>" maxlength="80" autocomplete="name" required>
+                </div>
+                <div class="field">
+                    <label class="label" for="profile-email">Email address</label>
+                    <input class="input" id="profile-email" name="email" type="email" value="<%= profile.email || '' %>" maxlength="254" autocomplete="email" required>
+                </div>
+                <div class="settings-actions">
+                    <button class="btn btn-primary" type="submit">Save Changes</button>
+                    <button class="btn btn-ghost" type="button" data-settings-edit-cancel="profile">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="card settings-card">
+        <div class="card-head">
+            <div>
+                <h2>Account security</h2>
+                <p>Keep your account protected with a strong password.</p>
+            </div>
+            <span class="settings-mark"><%- include('../partials/icon', { name: 'shield' }) %></span>
+        </div>
+        <div class="card-body">
+            <div class="settings-security-summary" data-settings-view="password" <%= activeEdit === 'password' ? 'hidden' : '' %>>
+                <p>Change your password periodically to help keep your account secure.</p>
+                <button class="btn btn-secondary btn-sm settings-edit-button" type="button"
+                        data-settings-edit-toggle="password" aria-controls="password-edit-form"
+                        aria-expanded="<%= activeEdit === 'password' ? 'true' : 'false' %>">
+                    <%- include('../partials/icon', { name: 'edit' }) %>
+                    Change Password
+                </button>
+            </div>
+            <form class="form settings-form settings-edit-panel" id="password-edit-form" data-password-confirm-form
+                  data-settings-panel="password" action="/settings/change-password" method="POST"
+                  <%= activeEdit === 'password' ? '' : 'hidden' %>>
+                <div class="field">
+                    <label class="label" for="current-password">Current password</label>
+                    <div class="password-field">
+                        <input class="input" id="current-password" name="currentPassword" type="password" autocomplete="current-password" required>
+                        <button class="password-toggle" type="button" data-password-toggle="current-password" aria-label="Show password">
+                            <span data-eye-show><%- include('../partials/icon', { name: 'eye' }) %></span>
+                            <span data-eye-hide hidden><%- include('../partials/icon', { name: 'eye-off' }) %></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field">
+                        <label class="label" for="new-password">New password <span>At least 8 characters</span></label>
+                        <div class="password-field">
+                            <input class="input" id="new-password" name="newPassword" type="password" minlength="8" autocomplete="new-password" required>
+                            <button class="password-toggle" type="button" data-password-toggle="new-password" aria-label="Show password">
+                                <span data-eye-show><%- include('../partials/icon', { name: 'eye' }) %></span>
+                                <span data-eye-hide hidden><%- include('../partials/icon', { name: 'eye-off' }) %></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="confirm-password">Confirm new password</label>
+                        <div class="password-field">
+                            <input class="input" id="confirm-password" name="confirmPassword" type="password" minlength="8" autocomplete="new-password" required>
+                            <button class="password-toggle" type="button" data-password-toggle="confirm-password" aria-label="Show password">
+                                <span data-eye-show><%- include('../partials/icon', { name: 'eye' }) %></span>
+                                <span data-eye-hide hidden><%- include('../partials/icon', { name: 'eye-off' }) %></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-actions">
+                    <button class="btn btn-primary" type="submit">Update Password</button>
+                    <button class="btn btn-ghost" type="button" data-settings-edit-cancel="password">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <% if (isGroupAccount) { %>
+        <section class="card settings-card">
+            <div class="card-head">
+                <div>
+                    <h2>Group information</h2>
+                    <p>Details shared by this mess / group.</p>
+                </div>
+                <% if (isAdmin) { %>
+                    <button class="btn btn-secondary btn-sm settings-edit-button" type="button"
+                            data-settings-edit-toggle="group" aria-controls="group-edit-form"
+                            aria-expanded="<%= activeEdit === 'group' ? 'true' : 'false' %>">
+                        <%- include('../partials/icon', { name: 'edit' }) %>
+                        Edit Group
+                    </button>
+                <% } else { %>
+                    <span class="settings-mark settings-mark-gold"><%- include('../partials/icon', { name: 'users' }) %></span>
+                <% } %>
+            </div>
+            <div class="card-body">
+                <dl class="detail-list settings-readonly" data-settings-view="group" <%= activeEdit === 'group' ? 'hidden' : '' %>>
+                    <div class="detail-row"><dt>Group name</dt><dd><%= groupName || '—' %></dd></div>
+                    <div class="detail-row"><dt>Group ID</dt><dd><%= profile.groupId || '—' %></dd></div>
+                    <div class="detail-row"><dt>Group role</dt><dd><%= roleLabel %></dd></div>
+                </dl>
+                <% if (isAdmin) { %>
+                    <form class="form settings-form settings-edit-panel" id="group-edit-form"
+                          data-settings-panel="group" action="/settings/update-group" method="POST"
+                          <%= activeEdit === 'group' ? '' : 'hidden' %>>
+                        <div class="field">
+                            <label class="label" for="mess-name">Group name</label>
+                            <input class="input" id="mess-name" name="messName" type="text" value="<%= groupName %>" maxlength="100" required>
+                        </div>
+                        <div class="settings-actions">
+                            <button class="btn btn-primary" type="submit">Save Changes</button>
+                            <button class="btn btn-ghost" type="button" data-settings-edit-cancel="group">Cancel</button>
+                        </div>
+                    </form>
+                <% } %>
+            </div>
+        </section>
+    <% } %>
+
+    <section class="card settings-card">
+        <div class="card-head">
+            <div>
+                <h2>Account details</h2>
+                <p>Identity and account creation information.</p>
+            </div>
+            <span class="settings-mark settings-mark-gold"><%- include('../partials/icon', { name: 'calendar' }) %></span>
         </div>
         <div class="card-body">
             <dl class="detail-list">
-                <div class="detail-row">
-                    <dt>Full name</dt>
-                    <dd><%= profile.name || '—' %></dd>
-                </div>
-                <div class="detail-row">
-                    <dt>Email</dt>
-                    <dd><%= profile.email || '—' %></dd>
-                </div>
-                <div class="detail-row">
-                    <dt>Account type</dt>
-                    <dd><%= isGroupAccount ? 'Mess / group' : 'Personal' %></dd>
-                </div>
+                <div class="detail-row"><dt>Account type</dt><dd><%= isGroupAccount ? 'Mess / group' : 'Personal' %></dd></div>
+                <div class="detail-row"><dt>Account created</dt><dd><%= formatDate(accountCreatedAt) %></dd></div>
+                <div class="detail-row"><dt>Role</dt><dd><%= roleLabel %></dd></div>
+                <div class="detail-row"><dt>Group ID</dt><dd><%= isGroupAccount ? (profile.groupId || '—') : '—' %></dd></div>
                 <% if (isGroupAccount) { %>
-                    <div class="detail-row">
-                        <dt>Mess name</dt>
-                        <dd><%= profile.messName || '—' %></dd>
-                    </div>
-                    <div class="detail-row">
-                        <dt>Group ID</dt>
-                        <dd><%= profile.groupId %></dd>
-                    </div>
-                    <div class="detail-row">
-                        <dt>Role</dt>
-                        <dd><%= roleLabel %></dd>
-                    </div>
+                    <div class="detail-row"><dt>Group created</dt><dd><%= formatDate(groupCreatedAt) %></dd></div>
                 <% } %>
             </dl>
         </div>
     </section>
 
-    <section class="card">
+    <section class="card settings-card settings-activity">
         <div class="card-head">
             <div>
                 <h2>Lifetime activity</h2>
@@ -73,61 +207,35 @@
         </div>
         <div class="card-body">
             <dl class="detail-list">
-                <div class="detail-row">
-                    <dt><%= isGroupAccount ? 'Total contributions' : 'Total income' %></dt>
-                    <dd><%= money(lifetimeIncome) %></dd>
-                </div>
-                <div class="detail-row">
-                    <dt>Total expenses</dt>
-                    <dd><%= money(lifetimeExpense) %></dd>
-                </div>
-                <div class="detail-row">
-                    <dt>Net balance</dt>
-                    <dd><%= money(netLifetime) %></dd>
-                </div>
-                <div class="detail-row">
-                    <dt>Income records</dt>
-                    <dd><%= incomeCount %></dd>
-                </div>
-                <div class="detail-row">
-                    <dt>Expense records</dt>
-                    <dd><%= expenseCount %></dd>
-                </div>
+                <div class="detail-row"><dt><%= isGroupAccount ? 'Total contributions' : 'Total income' %></dt><dd><%= money(lifetimeIncome) %></dd></div>
+                <div class="detail-row"><dt>Total expenses</dt><dd><%= money(lifetimeExpense) %></dd></div>
+                <div class="detail-row"><dt>Net balance</dt><dd><%= money(netLifetime) %></dd></div>
+                <div class="detail-row"><dt>Income records</dt><dd><%= incomeCount %></dd></div>
+                <div class="detail-row"><dt>Expense records</dt><dd><%= expenseCount %></dd></div>
                 <% if (isGroupAccount) { %>
-                    <div class="detail-row">
-                        <dt>Group members</dt>
-                        <dd><%= memberCount %></dd>
-                    </div>
+                    <div class="detail-row"><dt>Group members</dt><dd><%= memberCount %></dd></div>
                 <% } %>
             </dl>
         </div>
     </section>
-</div>
 
-<div class="<%= isGroupAccount ? 'grid-2' : '' %> mt-2">
     <% if (isGroupAccount) { %>
-        <section class="card">
+        <section class="card settings-card settings-utility">
             <div class="card-head">
-                <div>
-                    <h2>Group management</h2>
-                    <p>Admins can promote members or remove logins.</p>
-                </div>
+                <div><h2>Group management</h2><p>Review accounts in this group.</p></div>
             </div>
             <div class="card-body">
                 <a class="btn btn-secondary btn-block" href="/settings/members">
                     <%- include('../partials/icon', { name: 'users' }) %>
-                    View all members
+                    View group members
                 </a>
             </div>
         </section>
     <% } %>
 
-    <section class="card">
+    <section class="card settings-card settings-utility">
         <div class="card-head">
-            <div>
-                <h2>Session</h2>
-                <p>Sign out on this device.</p>
-            </div>
+            <div><h2>Session</h2><p>Sign out on this device.</p></div>
         </div>
         <div class="card-body">
             <a class="btn btn-danger btn-block" href="/logout">

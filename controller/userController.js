@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 const MoneyAdd = require('../models/moneyAdd');
 const VagetableExpense = require('../models/moneyExpenses');
 const MealUser = require('../models/mealUser');
@@ -101,6 +102,40 @@ function currentUser(req) {
 
 function round2(value) {
     return Math.round((Number(value) || 0) * 100) / 100;
+}
+
+function normalizeEmail(value) {
+    return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function isEmail(value) {
+    return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function settingsRedirect(res, key, message, edit) {
+    const editQuery = edit ? `&edit=${encodeURIComponent(edit)}` : '';
+    return res.redirect(`/settings?${key}=${encodeURIComponent(message)}${editQuery}`);
+}
+
+function saveSession(req) {
+    return new Promise((resolve, reject) => {
+        req.session.save(error => error ? reject(error) : resolve());
+    });
+}
+
+function refreshSessionUser(req, user) {
+    req.session.user = {
+        id: String(user._id),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        groupId: user.groupId,
+        messName: user.messName || null
+    };
+}
+
+function creationDateFromId(id) {
+    return id && typeof id.getTimestamp === 'function' ? id.getTimestamp() : null;
 }
 
 /* =========================
@@ -1156,9 +1191,14 @@ exports.getYearDetails = async (req, res, next) => {
 
 exports.getSetting = async (req, res, next) => {
     try {
-        const user = currentUser(req);
+        const sessionUser = currentUser(req);
+        const user = await User.findById(sessionUser.id).select('name email role groupId messName').lean();
+        if (!user) {
+            return req.session.destroy(() => res.redirect('/login'));
+        }
+        user.id = String(user._id);
         const groupAccount = isMessAccount(user);
-        const [incomeAgg, expenseAgg, memberCount] = await Promise.all([
+        const [incomeAgg, expenseAgg, memberCount, groupAdmin, firstGroupUser] = await Promise.all([
             MoneyAdd.aggregate([
                 { $match: getAccountScope(user) },
                 { $group: { _id: null, total: { $sum: '$entry_amount' }, count: { $sum: 1 } } }
@@ -1169,18 +1209,131 @@ exports.getSetting = async (req, res, next) => {
             ]),
             groupAccount
                 ? User.countDocuments({ groupId: user.groupId, isVerified: true })
-                : Promise.resolve(1)
+                : Promise.resolve(1),
+            groupAccount
+                ? User.findOne({ groupId: user.groupId, role: 'admin', isVerified: true }).select('messName').lean()
+                : Promise.resolve(null),
+            groupAccount
+                ? User.findOne({ groupId: user.groupId, isVerified: true }).sort({ _id: 1 }).select('_id').lean()
+                : Promise.resolve(null)
         ]);
 
         return res.render('host/Settings', {
             profile: user,
             isGroupAccount: groupAccount,
+            groupName: groupAccount ? (groupAdmin?.messName || user.messName || '') : '',
+            accountCreatedAt: creationDateFromId(user._id),
+            groupCreatedAt: firstGroupUser ? creationDateFromId(firstGroupUser._id) : null,
+            isAdmin: groupAccount && user.role === 'admin',
             memberCount,
             incomeCount: incomeAgg[0]?.count || 0,
             expenseCount: expenseAgg[0]?.count || 0,
             lifetimeIncome: round2(incomeAgg[0]?.total || 0),
-            lifetimeExpense: round2(expenseAgg[0]?.total || 0)
+            lifetimeExpense: round2(expenseAgg[0]?.total || 0),
+            notice: typeof req.query.notice === 'string' ? req.query.notice : null,
+            error: typeof req.query.error === 'string' ? req.query.error : null,
+            activeEdit: ['profile', 'group', 'password'].includes(req.query.edit)
+                && (req.query.edit !== 'group' || (groupAccount && user.role === 'admin'))
+                ? req.query.edit
+                : null
         });
+    } catch (error) {
+        return next(error);
+    }
+};
+
+exports.postUpdateProfile = async (req, res, next) => {
+    try {
+        const sessionUser = currentUser(req);
+        const user = await User.findById(sessionUser.id);
+        if (!user) return res.redirect('/login');
+
+        const submittedName = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+        if (submittedName.length > 80) {
+            return settingsRedirect(res, 'error', 'Your name must be 80 characters or fewer.', 'profile');
+        }
+        const name = cleanText(submittedName, 80);
+        const email = normalizeEmail(req.body.email);
+        if (!name) return settingsRedirect(res, 'error', 'Enter your name.', 'profile');
+        if (!isEmail(email)) return settingsRedirect(res, 'error', 'Enter a valid email address.', 'profile');
+
+        const duplicate = await User.findOne({
+            _id: { $ne: user._id },
+            email: { $regex: `^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' }
+        }).select('_id').lean();
+        if (duplicate) return settingsRedirect(res, 'error', 'That email address is already in use.', 'profile');
+
+        user.name = name;
+        user.email = email;
+        await user.save();
+        refreshSessionUser(req, user);
+        await saveSession(req);
+
+        return settingsRedirect(res, 'notice', 'Your profile has been updated.');
+    } catch (error) {
+        if (error && error.code === 11000) {
+            return settingsRedirect(res, 'error', 'That email address is already in use.', 'profile');
+        }
+        return next(error);
+    }
+};
+
+exports.postUpdateGroup = async (req, res, next) => {
+    try {
+        const sessionUser = currentUser(req);
+        const user = await User.findById(sessionUser.id);
+        if (!user) return res.redirect('/login');
+        if (!isMessAccount(user) || user.role !== 'admin') {
+            return deny(res, 'Only the group admin can update group information.');
+        }
+
+        const submittedMessName = typeof req.body.messName === 'string' ? req.body.messName.trim() : '';
+        if (submittedMessName.length > 100) {
+            return settingsRedirect(res, 'error', 'The group name must be 100 characters or fewer.', 'group');
+        }
+        const messName = cleanText(submittedMessName, 100);
+        if (!messName) return settingsRedirect(res, 'error', 'Enter a group name.', 'group');
+
+        const result = await User.updateMany(
+            { groupId: user.groupId, isVerified: true },
+            { $set: { messName } }
+        );
+        if (!result.matchedCount) {
+            return settingsRedirect(res, 'error', 'This group could not be found.', 'group');
+        }
+
+        user.messName = messName;
+        refreshSessionUser(req, user);
+        await saveSession(req);
+
+        return settingsRedirect(res, 'notice', 'Group information has been updated.');
+    } catch (error) {
+        return next(error);
+    }
+};
+
+exports.postChangePassword = async (req, res, next) => {
+    try {
+        const sessionUser = currentUser(req);
+        const user = await User.findById(sessionUser.id);
+        if (!user) return res.redirect('/login');
+
+        const currentPassword = typeof req.body.currentPassword === 'string' ? req.body.currentPassword : '';
+        const newPassword = typeof req.body.newPassword === 'string' ? req.body.newPassword : '';
+        const confirmPassword = typeof req.body.confirmPassword === 'string' ? req.body.confirmPassword : '';
+        if (!user.password || !await bcrypt.compare(currentPassword, user.password)) {
+            return settingsRedirect(res, 'error', 'Your current password is incorrect.', 'password');
+        }
+        if (newPassword.length < 8) {
+            return settingsRedirect(res, 'error', 'Your new password must be at least 8 characters long.', 'password');
+        }
+        if (newPassword !== confirmPassword) {
+            return settingsRedirect(res, 'error', 'Your new passwords do not match.', 'password');
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+        return settingsRedirect(res, 'notice', 'Your password has been changed.');
     } catch (error) {
         return next(error);
     }

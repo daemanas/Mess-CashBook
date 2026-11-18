@@ -24,7 +24,10 @@ userRouter.get('/meal-billing', isMess, userController.getMealBilling);
 userRouter.get('/final-settlement', isMess, userController.getFinalSettlement);
 
 /* Account & reporting */
-userRouter.get('/setting', isAuth, userController.getSetting);
+userRouter.get(['/setting', '/settings'], isAuth, userController.getSetting);
+userRouter.post('/settings/update-profile', isAuth, userController.postUpdateProfile);
+userRouter.post('/settings/update-group', isAuth, userController.postUpdateGroup);
+userRouter.post('/settings/change-password', isAuth, userController.postChangePassword);
 userRouter.get('/reports', isAuth, userController.getReports);
 userRouter.get('/transactions', isAuth, userController.getTransactions);
 userRouter.get('/moneyAdded', isAuth, userController.getMoneyAdded);

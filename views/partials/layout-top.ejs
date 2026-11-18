@@ -103,7 +103,7 @@
                     <%- include('icon', { name: 'users' }) %> Group members
                 </a>
             <% } %>
-            <a class="nav-link <%= isActive('/setting') ? 'is-active' : '' %>" href="/setting">
+            <a class="nav-link <%= currentPath === '/settings' || currentPath === '/setting' ? 'is-active' : '' %>" href="/settings">
                 <%- include('icon', { name: 'settings' }) %> Settings
             </a>
         </nav>
@@ -127,7 +127,7 @@
                 <strong><%= accountName %></strong>
             </div>
             <div class="topbar-right">
-                <a class="topbar-user" href="/setting" aria-label="Open settings for <%= displayName %>">
+                <a class="topbar-user" href="/settings" aria-label="Open settings for <%= displayName %>">
                     <span class="avatar" aria-hidden="true"><%= initial %></span>
                     <span class="topbar-user-copy">
                         <strong><%= displayName %></strong>
