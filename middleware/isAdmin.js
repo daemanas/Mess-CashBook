@@ -1,7 +1,7 @@
-const isAuth = require('./isAuth');
+const isMess = require('./isMess');
 
 module.exports = (req, res, next) => {
-    isAuth(req, res, () => {
+    isMess(req, res, () => {
         const user = req.session.user;
         if (user.role !== 'admin' || !user.groupId) {
             return res.status(403).render('host/error', {

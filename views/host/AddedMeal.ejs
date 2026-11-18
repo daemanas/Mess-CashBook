@@ -1,5 +1,5 @@
 <%
-    const isAdmin = account.isAdmin;
+    const isAdmin = canManageMeals;
     const memberCount = users.length;
     const average = memberCount > 0 ? grandTotalFood / memberCount : 0;
     const mealEntries = users.reduce((sum, user) => sum + user.meals.length, 0);
@@ -14,10 +14,12 @@
     </div>
     <div class="page-actions">
         <%- include('../partials/monthFilter') %>
-        <a class="btn btn-primary" href="/add-Meal">
-            <%- include('../partials/icon', { name: 'plus' }) %>
-            Add meal
-        </a>
+        <% if (isAdmin) { %>
+            <a class="btn btn-primary" href="/add-Meal">
+                <%- include('../partials/icon', { name: 'plus' }) %>
+                Add meal
+            </a>
+        <% } %>
     </div>
 </div>
 
@@ -64,11 +66,15 @@
         <div class="empty-state">
             <span class="empty-icon"><%- include('../partials/icon', { name: 'meal' }) %></span>
             <h3>No meals in <%= periodLabel %></h3>
-            <p>Add today’s meal counts to start calculating the per-meal price for settlement.</p>
-            <a class="btn btn-primary btn-sm" href="/add-Meal">
-                <%- include('../partials/icon', { name: 'plus' }) %>
-                Add a meal count
-            </a>
+            <% if (isAdmin) { %>
+                <p>Add member meal counts to start calculating the per-meal price for settlement.</p>
+                <a class="btn btn-primary btn-sm" href="/add-Meal">
+                    <%- include('../partials/icon', { name: 'plus' }) %>
+                    Add a meal count
+                </a>
+            <% } else { %>
+                <p>You do not have meal records for this period. Ask a group admin if you think something is missing.</p>
+            <% } %>
         </div>
     </section>
 <% } else { %>

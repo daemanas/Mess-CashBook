@@ -1,5 +1,7 @@
 <%
     const selectedName = (form && form.name) ? form.name : '';
+    const selectedMemberId = (form && form.memberId) ? form.memberId : '';
+    const selectedDate = (form && form.entry_date) ? form.entry_date : entryDate;
     const selectedCount = (form && form.food_count !== undefined) ? form.food_count : '';
 %>
 <%- include('../partials/layout-top', { pageTitle: 'Add meal' }) %>
@@ -8,7 +10,7 @@
     <div>
         <p class="eyebrow">Meals</p>
         <h1 class="page-title">Record a meal count</h1>
-        <p class="page-sub">Meals are recorded for today only. Give each member the count they actually ate.</p>
+        <p class="page-sub">Choose a group member, date and whole-number meal count.</p>
     </div>
     <div class="page-actions">
         <a class="btn btn-secondary" href="/AddedMeal">
@@ -23,11 +25,11 @@
 </div>
 
 <div class="split">
-    <section class="card">
+    <section class="card member-picker-card">
         <div class="card-head">
             <div>
-                <h2>Today’s count</h2>
-                <p><%= new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) %></p>
+                <h2>Meal details</h2>
+                <p>Admin-managed meal record</p>
             </div>
         </div>
         <div class="card-body">
@@ -41,39 +43,45 @@
             <% if (!members.length) { %>
                 <div class="alert alert-info" style="margin-bottom: 15px;">
                     <%- include('../partials/icon', { name: 'info' }) %>
-                    <span>No member names exist yet. Add a money contribution first so a meal ledger can be created.</span>
+                    <span>No verified group accounts are available for meal entry.</span>
                 </div>
             <% } %>
 
             <form class="form" action="/add-Meal" method="POST">
                 <div class="field">
-                    <label class="label" for="meal-name">Member</label>
-                    <input class="input" id="meal-name" type="text" name="name"
-                           value="<%= selectedName %>" placeholder="Start typing a member name"
-                           list="meal-members" maxlength="80" autocomplete="off" required autofocus>
-                    <datalist id="meal-members">
-                        <% members.forEach(member => { %>
-                            <option value="<%= member %>"></option>
-                        <% }) %>
-                    </datalist>
-                    <p class="hint">Only members who already appear in money entries are listed.</p>
+                    <%- include('../partials/memberPicker', {
+                        pickerId: 'meal-name',
+                        pickerName: 'name',
+                        pickerLabel: 'Member',
+                        pickerValue: selectedName,
+                        pickerPlaceholder: 'Choose a registered group member',
+                        selectedMemberId,
+                        members
+                    }) %>
+                    <p class="hint">Only verified accounts in this group can be assigned a meal record.</p>
+                </div>
+
+                <div class="field">
+                    <label class="label" for="meal-date">Meal date</label>
+                    <input class="input" id="meal-date" type="date" name="entry_date"
+                           value="<%= selectedDate %>" required>
                 </div>
 
                 <div class="field">
                     <label class="label" for="meal-count">
                         Food count
-                        <span>Usually 1–4</span>
+                        <span>Whole number</span>
                     </label>
                     <input class="input" id="meal-count" type="number" name="food_count"
                            value="<%= selectedCount %>" placeholder="e.g. 2"
-                           min="0.01" step="0.5" inputmode="decimal" required>
-                    <p class="hint">A member can have only one count per day. Use Added meals to remove or adjust an entry.</p>
+                           min="1" step="1" inputmode="numeric" required>
+                    <p class="hint">One count per member per date. Admins can remove or adjust an entry from Added meals.</p>
                 </div>
 
                 <div class="form-actions">
                     <button class="btn btn-primary" type="submit">
                         <%- include('../partials/icon', { name: 'check' }) %>
-                        Save today’s meal
+                        Save meal
                     </button>
                     <a class="btn btn-ghost" href="/AddedMeal">Cancel</a>
                 </div>

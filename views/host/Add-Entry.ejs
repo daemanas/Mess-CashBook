@@ -22,7 +22,7 @@
 </div>
 
 <div class="split">
-    <section class="card">
+    <section class="card member-picker-card">
         <div class="card-head">
             <div>
                 <h2>Entry details</h2>
@@ -39,23 +39,25 @@
 
             <form class="form" action="/add-entry" method="POST">
                 <div class="field">
-                    <label class="label" for="entry-title">
-                        <%= isGroupAccount ? 'Member name' : 'Income source' %>
-                        <%- isGroupAccount ? '<span>Existing or new member</span>' : '<span>e.g. Salary, Freelance</span>' %>
-                    </label>
-                    <input class="input" id="entry-title" type="text" name="entry_title"
-                           value="<%= value('entry_title', title) %>"
-                           placeholder="<%= isGroupAccount ? 'e.g. rahim' : 'e.g. Salary' %>"
-                           list="<%= isGroupAccount ? 'member-list' : '' %>"
-                           maxlength="80" autocomplete="off" required autofocus>
                     <% if (isGroupAccount) { %>
-                        <datalist id="member-list">
-                            <% members.forEach(member => { %>
-                                <option value="<%= member %>"></option>
-                            <% }) %>
-                        </datalist>
-                        <p class="hint">Member names are saved in lowercase so meal ledgers and settlements stay consistent.</p>
+                        <%- include('../partials/memberPicker', {
+                            pickerId: 'entry-title',
+                            pickerName: 'entry_title',
+                            pickerLabel: 'Member name',
+                            pickerValue: value('entry_title', title),
+                            pickerPlaceholder: 'Choose or enter a member name',
+                            selectedMemberId: value('memberId', ''),
+                            members
+                        }) %>
+                        <p class="hint">Choose a registered group member, or enter a manual contribution label.</p>
                     <% } else { %>
+                        <label class="label" for="entry-title">
+                            Income source
+                            <span>e.g. Salary, Freelance</span>
+                        </label>
+                        <input class="input" id="entry-title" type="text" name="entry_title"
+                               value="<%= value('entry_title', title) %>"
+                               placeholder="e.g. Salary" maxlength="80" autocomplete="off" required autofocus>
                         <p class="hint">A short label that makes this income easy to recognise later.</p>
                     <% } %>
                 </div>

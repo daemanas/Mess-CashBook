@@ -17,9 +17,9 @@ userRouter.post('/add-entry', isAuth, userController.postAddEntry);
 userRouter.get('/add-expense', isAuth, userController.getAddExpense);
 userRouter.post('/add-expense', isAuth, userController.postAddExpense);
 
-/* Meals — mess accounts only */
-userRouter.get('/add-Meal', isMess, userController.getAddMeal);
-userRouter.post('/add-Meal', isMess, userController.postAddMeal);
+/* Meal entry and mutations — group admins; meal viewing — group accounts */
+userRouter.get('/add-Meal', isAdmin, userController.getAddMeal);
+userRouter.post('/add-Meal', isAdmin, userController.postAddMeal);
 userRouter.get('/AddedMeal', isMess, userController.getAddedMeal);
 userRouter.get('/meal-billing', isMess, userController.getMealBilling);
 userRouter.get('/final-settlement', isMess, userController.getFinalSettlement);
@@ -47,13 +47,14 @@ userRouter.post('/expense-delete-date/:date', isAuth, userController.deleteExpen
 userRouter.post('/expense-delete-single/:id', isAuth, userController.deleteSingleExpense);
 userRouter.post('/money-delete-single/:id', isAuth, userController.deleteSingleMoney);
 
-/* Meal ledger deletes — mess accounts only, admin enforced in controller */
-userRouter.post('/meal-delete-user/:id', isMess, userController.deleteMealUser);
-userRouter.post('/meal-delete-single/:userId/:mealId', isMess, userController.deleteSingleMeal);
+/* Meal ledger deletes — group admin enforced in middleware and controller */
+userRouter.post('/meal-delete-user/:id', isAdmin, userController.deleteMealUser);
+userRouter.post('/meal-delete-single/:userId/:mealId', isAdmin, userController.deleteSingleMeal);
 
-/* Group members — mess accounts only, admin enforced in controller */
+/* Group members — group accounts can view; only admins can change roles */
 userRouter.get('/settings/members', isMess, userController.getGroupMembers);
-userRouter.post('/settings/members/:id/make-admin', isMess, userController.makeAdmin);
-userRouter.post('/settings/members/:id/remove', isMess, userController.removeMember);
+userRouter.post('/settings/members/:id/make-admin', isAdmin, userController.makeAdmin);
+userRouter.post('/settings/members/:id/remove-admin', isAdmin, userController.removeAdminRole);
+userRouter.post('/settings/members/:id/remove', isAdmin, userController.removeMember);
 
 module.exports = userRouter;

@@ -705,6 +705,11 @@ svg {
     border-color: var(--border-light);
 }
 
+.card.member-picker-card {
+    z-index: 3;
+    overflow: visible;
+}
+
 .card-head {
     display: flex;
     flex-wrap: wrap;
@@ -1166,6 +1171,122 @@ svg {
 .input-group .btn {
     flex: 0 0 auto;
     height: 40px;
+}
+
+.member-picker-control {
+    position: relative;
+}
+
+.member-picker-control > .input {
+    padding-right: 46px;
+}
+
+.member-picker-toggle {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--primary-light);
+    cursor: pointer;
+    transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.member-picker-toggle:hover,
+.member-picker-toggle[aria-expanded="true"] {
+    background: var(--primary-glow);
+    color: var(--text);
+}
+
+.member-picker-toggle[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+}
+
+.member-picker-toggle svg {
+    width: 15px;
+    height: 15px;
+    transition: transform 0.16s ease;
+}
+
+.member-picker-menu {
+    position: absolute;
+    top: calc(100% + 7px);
+    right: 0;
+    left: 0;
+    z-index: 45;
+    padding: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    border-radius: 11px;
+    background: linear-gradient(180deg, var(--surface-elevated), var(--surface));
+    box-shadow: var(--shadow-premium);
+    opacity: 0;
+    transform: translateY(-5px) scale(0.99);
+    transform-origin: top center;
+    transition: opacity 0.15s var(--ease), transform 0.15s var(--ease);
+    pointer-events: none;
+}
+
+.member-picker-menu.is-open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.member-picker-search {
+    width: 100%;
+    height: 35px;
+    margin-bottom: 6px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    outline: none;
+    background: var(--surface-field);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.76rem;
+}
+
+.member-picker-search:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+.member-picker-options {
+    display: grid;
+    max-height: 210px;
+    overflow-y: auto;
+}
+
+.member-picker-option {
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-body);
+    cursor: pointer;
+    font-size: 0.78rem;
+    text-align: left;
+    transition: background 0.14s ease, color 0.14s ease;
+}
+
+.member-picker-option:hover,
+.member-picker-option[aria-selected="true"] {
+    background: var(--primary-glow);
+    color: var(--text);
+}
+
+.member-picker-empty {
+    padding: 10px;
+    color: var(--text-muted);
+    font-size: 0.74rem;
+    text-align: center;
 }
 
 .password-field {

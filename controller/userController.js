@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const SettlementEmail = require('../models/SettlementEmail');
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('node:crypto');
 const MoneyAdd = require('../models/moneyAdd');
@@ -17,8 +18,7 @@ const { sendSettlementEmail, settlementEmailTemplate } = require('../util/mailer
 const {
     isMessAccount,
     getAccountScope,
-    getRecordOwnership,
-    accountId
+    getRecordOwnership
 } = require('../util/account');
 
 /* =========================
@@ -47,9 +47,9 @@ function parseAmount(value) {
 }
 
 function parseDateInput(value) {
-    if (!value) return null;
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
     const date = new Date(`${value}T00:00:00`);
-    return Number.isNaN(date.getTime()) ? null : date;
+    return Number.isNaN(date.getTime()) || dateKey(date) !== value ? null : date;
 }
 
 function cleanText(value, max = 120) {
@@ -97,6 +97,33 @@ function normalizeEmail(value) {
     return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
 
+async function getGroupMembersForDropdown(groupId) {
+    const accounts = await User.find({
+        groupId,
+        isVerified: true,
+        role: { $in: ['admin', 'member'] }
+    }).select('_id name').sort({ name: 1 }).lean();
+
+    return accounts
+        .map(member => ({
+            id: String(member._id),
+            name: cleanText(member.name, 80)
+        }))
+        .filter(member => member.name);
+}
+
+function resolveGroupMember(members, memberId, name) {
+    const normalizedName = titleKey(name);
+    if (memberId) {
+        return members.find(member =>
+            member.id === memberId && titleKey(member.name) === normalizedName
+        ) || null;
+    }
+
+    const matches = members.filter(member => titleKey(member.name) === normalizedName);
+    return matches.length === 1 ? matches[0] : null;
+}
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REQUEST_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -105,9 +132,9 @@ async function authenticatedGroupAdmin(req) {
     if (!sessionUser || sessionUser.role !== 'admin' || !sessionUser.groupId) return null;
 
     const admin = await User.findById(sessionUser.id)
-        .select('name email role groupId messName')
+        .select('name email role groupId messName isVerified')
         .lean();
-    if (!admin || admin.role !== 'admin' || !admin.groupId
+    if (!admin || !admin.isVerified || admin.role !== 'admin' || !admin.groupId
         || String(admin.groupId) !== String(sessionUser.groupId)) {
         return null;
     }
@@ -379,15 +406,7 @@ exports.getAddEntry = async (req, res, next) => {
     try {
         const user = currentUser(req);
         const groupAccount = isMessAccount(user);
-        let members = [];
-
-        if (groupAccount) {
-            const [moneyNames, mealNames] = await Promise.all([
-                MoneyAdd.distinct('entry_title', { groupId: user.groupId }),
-                MealUser.distinct('name', { groupId: user.groupId })
-            ]);
-            members = Array.from(new Set([...moneyNames, ...mealNames].filter(Boolean))).sort();
-        }
+        const members = groupAccount ? await getGroupMembersForDropdown(user.groupId) : [];
 
         return res.render('host/Add-Entry', {
             title: cleanText(req.query.title, 60),
@@ -411,9 +430,15 @@ exports.postAddEntry = async (req, res, next) => {
         const entryDate = parseDateInput(req.body.entry_date);
         const amount = parseAmount(req.body.entry_amount);
         const rawTitle = cleanText(req.body.entry_title, 80);
+        const memberId = typeof req.body.memberId === 'string' ? req.body.memberId.trim() : '';
+        const members = groupAccount ? await getGroupMembersForDropdown(user.groupId) : [];
+        const selectedMember = groupAccount
+            ? resolveGroupMember(members, memberId, rawTitle)
+            : null;
 
         const form = {
             entry_title: rawTitle,
+            memberId,
             entry_amount: req.body.entry_amount,
             entry_date: req.body.entry_date
         };
@@ -422,13 +447,12 @@ exports.postAddEntry = async (req, res, next) => {
         if (!entryDate) errors.push('Please choose a valid date.');
         if (amount === null) errors.push('Amount must be a number greater than zero.');
         if (groupAccount && !rawTitle) errors.push('Please enter the member name.');
+        if (groupAccount && memberId && !selectedMember) {
+            errors.push('Choose a registered member from your group, or clear the selection to enter a manual name.');
+        }
         if (!groupAccount && !rawTitle) errors.push('Please enter an income source.');
 
         if (errors.length) {
-            let members = [];
-            if (groupAccount) {
-                members = await MoneyAdd.distinct('entry_title', { groupId: user.groupId });
-            }
             return res.status(400).render('host/Add-Entry', {
                 title: rawTitle,
                 members,
@@ -453,9 +477,16 @@ exports.postAddEntry = async (req, res, next) => {
                 name: entryTitle,
                 groupId: user.groupId
             });
-            if (!existingLedger) {
+            const memberNameIsUnique = selectedMember && members.filter(
+                member => titleKey(member.name) === titleKey(selectedMember.name)
+            ).length === 1;
+            if (existingLedger && !existingLedger.memberId && memberNameIsUnique) {
+                existingLedger.memberId = new mongoose.Types.ObjectId(selectedMember.id);
+                await existingLedger.save();
+            } else if (!existingLedger) {
                 await MealUser.create({
                     name: entryTitle,
+                    memberId: selectedMember ? new mongoose.Types.ObjectId(selectedMember.id) : null,
                     meals: [],
                     groupId: user.groupId,
                     user: ownership.user
@@ -532,15 +563,12 @@ exports.postAddExpense = async (req, res, next) => {
 
 exports.getAddMeal = async (req, res, next) => {
     try {
-        const user = currentUser(req);
-        if (!isMessAccount(user)) {
-            return deny(res, 'Meal management is only available for mess accounts.');
-        }
-
-        const members = await MoneyAdd.distinct('entry_title', { groupId: user.groupId });
+        const admin = await authenticatedGroupAdmin(req);
+        if (!admin) return deny(res, 'Only the group admin can add meals.');
+        const members = await getGroupMembersForDropdown(admin.groupId);
 
         return res.render('host/AddMeal', {
-            members: members.filter(Boolean).sort(),
+            members,
             entryDate: dateKey(new Date()),
             error: null,
             form: null
@@ -553,46 +581,77 @@ exports.getAddMeal = async (req, res, next) => {
 exports.postAddMeal = async (req, res, next) => {
     try {
         const user = currentUser(req);
-        if (!isMessAccount(user)) {
-            return deny(res, 'Meal management is only available for mess accounts.');
-        }
+        const admin = await authenticatedGroupAdmin(req);
+        if (!admin) return deny(res, 'Only the group admin can add meals.');
 
-        const memberName = titleKey(req.body.name);
-        const foodCount = parseAmount(req.body.food_count);
-        const form = { name: req.body.name, food_count: req.body.food_count };
+        const memberName = cleanText(req.body.name, 80);
+        const memberId = typeof req.body.memberId === 'string' ? req.body.memberId.trim() : '';
+        const entryDate = parseDateInput(req.body.entry_date);
+        const rawCount = typeof req.body.food_count === 'string' ? req.body.food_count.trim() : '';
+        const foodCount = /^\d+$/.test(rawCount) && Number.isSafeInteger(Number(rawCount)) && Number(rawCount) > 0
+            ? Number(rawCount)
+            : null;
+        const members = await getGroupMembersForDropdown(admin.groupId);
+        const selectedMember = resolveGroupMember(members, memberId, memberName);
+        const form = {
+            name: memberName,
+            memberId,
+            entry_date: req.body.entry_date,
+            food_count: req.body.food_count
+        };
 
         const renderError = async (message, status = 400) => {
-            const members = await MoneyAdd.distinct('entry_title', { groupId: user.groupId });
             return res.status(status).render('host/AddMeal', {
-                members: members.filter(Boolean).sort(),
-                entryDate: dateKey(new Date()),
+                members,
+                entryDate: dateKey(entryDate || new Date()),
                 error: message,
                 form
             });
         };
 
         if (!memberName) return renderError('Please choose a member.');
-        if (foodCount === null) return renderError('Meal count must be greater than zero.');
+        if (!entryDate) return renderError('Please choose a valid meal date.');
+        if (foodCount === null) return renderError('Meal count must be a whole number greater than zero.');
+        if (!selectedMember) {
+            return renderError('Choose a registered member of this group. If names are duplicated, select from the dropdown.');
+        }
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        let ledger = await MealUser.findOne({ name: memberName, groupId: user.groupId });
+        const memberObjectId = new mongoose.Types.ObjectId(selectedMember.id);
+        let ledger = await MealUser.findOne({
+            groupId: admin.groupId,
+            memberId: memberObjectId
+        });
+        const memberNameIsUnique = members.filter(
+            member => titleKey(member.name) === titleKey(selectedMember.name)
+        ).length === 1;
+        if (!ledger && memberNameIsUnique) {
+            const legacyName = new RegExp(`^${escapeRegex(titleKey(selectedMember.name))}$`, 'i');
+            const legacyLedgers = await MealUser.find({
+                groupId: admin.groupId,
+                name: legacyName,
+                $or: [{ memberId: { $exists: false } }, { memberId: null }]
+            }).sort({ _id: 1 }).limit(2);
+            if (legacyLedgers.length === 1) {
+                ledger = legacyLedgers[0];
+                ledger.memberId = memberObjectId;
+            }
+        }
         if (!ledger) {
             ledger = await MealUser.create({
-                name: memberName,
+                name: titleKey(selectedMember.name),
+                memberId: memberObjectId,
                 meals: [],
-                groupId: user.groupId,
-                user: accountId(user)
+                groupId: admin.groupId,
+                user: admin._id
             });
         }
 
-        const alreadyAdded = ledger.meals.some(meal => dateKey(meal.date) === dateKey(today));
+        const alreadyAdded = ledger.meals.some(meal => dateKey(meal.date) === dateKey(entryDate));
         if (alreadyAdded) {
-            return renderError('A meal count for this member is already recorded today.');
+            return renderError('A meal count for this member is already recorded on that date.');
         }
 
-        ledger.meals.push({ date: today, food_count: foodCount });
+        ledger.meals.push({ date: entryDate, food_count: foodCount });
         await ledger.save();
 
         return res.redirect('/AddedMeal?saved=1');
@@ -609,7 +668,29 @@ exports.getAddedMeal = async (req, res, next) => {
         }
 
         const period = parsePeriod(req.query);
-        const users = await MealUser.find({ groupId: user.groupId }).sort({ name: 1 });
+        const account = await User.findById(user.id).select('name role groupId isVerified').lean();
+        if (!account || !account.isVerified || account.groupId !== user.groupId
+            || !['admin', 'member'].includes(account.role)) {
+            return deny(res, 'Your current group membership could not be verified.');
+        }
+
+        let users = await MealUser.find({ groupId: account.groupId }).sort({ name: 1 });
+        if (account.role === 'member') {
+            const normalizedName = titleKey(account.name);
+            const nameMatches = normalizedName
+                ? await User.countDocuments({
+                    groupId: account.groupId,
+                    isVerified: true,
+                    role: { $in: ['admin', 'member'] },
+                    name: { $regex: `^${escapeRegex(account.name)}$`, $options: 'i' }
+                })
+                : 0;
+            const memberId = String(account._id);
+            users = users.filter(entry => {
+                if (entry.memberId) return String(entry.memberId) === memberId;
+                return nameMatches === 1 && titleKey(entry.name) === normalizedName;
+            });
+        }
 
         let grandTotalFood = 0;
 
@@ -635,6 +716,7 @@ exports.getAddedMeal = async (req, res, next) => {
         return res.render('host/AddedMeal', {
             users: usersWithTotal,
             grandTotalFood: round2(grandTotalFood),
+            canManageMeals: account.role === 'admin',
             month: period.month,
             year: period.year,
             period,
@@ -1602,7 +1684,11 @@ exports.getGroupMembers = async (req, res, next) => {
             return deny(res, 'Group members are only available for mess accounts.');
         }
 
-        const members = await User.find({ groupId: user.groupId, isVerified: true })
+        const members = await User.find({
+            groupId: user.groupId,
+            isVerified: true,
+            role: { $in: ['admin', 'member'] }
+        })
             .select('name email role createdAt')
             .sort({ role: 1, name: 1 })
             .lean();
@@ -1619,15 +1705,86 @@ exports.getGroupMembers = async (req, res, next) => {
 
 exports.makeAdmin = async (req, res, next) => {
     try {
-        const user = currentUser(req);
-        if (!isMessAccount(user) || user.role !== 'admin') {
-            return deny(res, 'Only the mess admin can change member roles.');
+        const admin = await authenticatedGroupAdmin(req);
+        if (!admin) return deny(res, 'Only a verified group admin can change member roles.');
+        if (!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(400).render('host/error', {
+                status: 400,
+                title: 'Invalid member',
+                message: 'The selected group account ID is invalid.'
+            });
+        }
+        if (String(req.params.id) === String(admin._id)) {
+            return deny(res, 'You cannot change your own admin role.');
         }
 
-        await User.updateOne(
-            { _id: req.params.id, groupId: user.groupId, isVerified: true },
+        const result = await User.updateOne(
+            { _id: req.params.id, groupId: admin.groupId, isVerified: true, role: 'member' },
             { $set: { role: 'admin' } }
         );
+        if (result.modifiedCount !== 1) {
+            return res.status(404).render('host/error', {
+                status: 404,
+                title: 'Member not found',
+                message: 'The selected verified member was not found in your group.'
+            });
+        }
+
+        return res.redirect('/settings/members?updated=1');
+    } catch (error) {
+        return next(error);
+    }
+};
+
+exports.removeAdminRole = async (req, res, next) => {
+    try {
+        const admin = await authenticatedGroupAdmin(req);
+        if (!admin) return deny(res, 'Only a verified group admin can change member roles.');
+        if (!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(400).render('host/error', {
+                status: 400,
+                title: 'Invalid member',
+                message: 'The selected group account ID is invalid.'
+            });
+        }
+        if (String(req.params.id) === String(admin._id)) {
+            return deny(res, 'You cannot remove your own admin role.');
+        }
+
+        const target = await User.findOne({
+            _id: req.params.id,
+            groupId: admin.groupId,
+            isVerified: true,
+            role: 'admin'
+        });
+        if (!target) {
+            return res.status(404).render('host/error', {
+                status: 404,
+                title: 'Admin not found',
+                message: 'The selected admin was not found in your group.'
+            });
+        }
+
+        const adminCount = await User.countDocuments({
+            groupId: admin.groupId,
+            role: 'admin',
+            isVerified: true
+        });
+        if (adminCount <= 1) {
+            return deny(res, 'The last group admin cannot be demoted.', 'Promote another verified member before changing this role.');
+        }
+
+        const result = await User.updateOne(
+            { _id: target._id, groupId: admin.groupId, isVerified: true, role: 'admin' },
+            { $set: { role: 'member' } }
+        );
+        if (result.modifiedCount !== 1) {
+            return res.status(409).render('host/error', {
+                status: 409,
+                title: 'Role could not be changed',
+                message: 'This account’s role changed before the request completed. Refresh the member list and try again.'
+            });
+        }
 
         return res.redirect('/settings/members?updated=1');
     } catch (error) {
@@ -1637,30 +1794,35 @@ exports.makeAdmin = async (req, res, next) => {
 
 exports.removeMember = async (req, res, next) => {
     try {
-        const user = currentUser(req);
-        if (!isMessAccount(user) || user.role !== 'admin') {
-            return deny(res, 'Only the mess admin can remove members.');
+        const admin = await authenticatedGroupAdmin(req);
+        if (!admin) return deny(res, 'Only a verified group admin can remove group accounts.');
+        if (!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(400).render('host/error', {
+                status: 400,
+                title: 'Invalid member',
+                message: 'The selected group account ID is invalid.'
+            });
         }
 
         const targetId = String(req.params.id);
-        if (targetId === accountId(user).toString()) {
+        if (targetId === String(admin._id)) {
             return deny(res, 'You cannot remove your own admin account.', 'Ask another admin to remove you if needed.');
         }
 
-        const target = await User.findOne({ _id: targetId, groupId: user.groupId, isVerified: true });
+        const target = await User.findOne({ _id: targetId, groupId: admin.groupId, isVerified: true });
         if (!target) {
             return res.redirect('/settings/members');
         }
 
         if (target.role === 'admin') {
-            const adminCount = await User.countDocuments({ groupId: user.groupId, role: 'admin', isVerified: true });
+            const adminCount = await User.countDocuments({ groupId: admin.groupId, role: 'admin', isVerified: true });
             if (adminCount <= 1) {
                 return deny(res, 'The mess needs at least one admin.', 'Promote another member to admin before removing this one.');
             }
         }
 
         // Only the login is removed; financial history stays intact for audit.
-        await User.deleteOne({ _id: target._id, groupId: user.groupId });
+        await User.deleteOne({ _id: target._id, groupId: admin.groupId });
 
         return res.redirect('/settings/members?removed=1');
     } catch (error) {
@@ -1720,12 +1882,17 @@ exports.deleteExpenseByDate = async (req, res, next) => {
 
 exports.deleteMealUser = async (req, res, next) => {
     try {
-        const user = currentUser(req);
-        if (!isMessAccount(user) || user.role !== 'admin') {
-            return deny(res, 'Only the mess admin can delete a member meal ledger.');
+        const admin = await authenticatedGroupAdmin(req);
+        if (!admin) return deny(res, 'Only the verified group admin can delete a member meal ledger.');
+        if (!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(400).render('host/error', {
+                status: 400,
+                title: 'Invalid meal ledger',
+                message: 'The selected meal ledger ID is invalid.'
+            });
         }
 
-        await MealUser.deleteOne({ _id: req.params.id, groupId: user.groupId });
+        await MealUser.deleteOne({ _id: req.params.id, groupId: admin.groupId });
 
         return res.redirect('/AddedMeal?deleted=1');
     } catch (error) {
@@ -1771,17 +1938,29 @@ exports.deleteSingleMoney = async (req, res, next) => {
 
 exports.deleteSingleMeal = async (req, res, next) => {
     try {
-        const user = currentUser(req);
-        if (!isMessAccount(user) || user.role !== 'admin') {
-            return deny(res, 'Only the mess admin can delete a meal entry.');
-        }
+        const admin = await authenticatedGroupAdmin(req);
+        if (!admin) return deny(res, 'Only the verified group admin can delete a meal entry.');
 
         const { userId, mealId } = req.params;
+        if (!mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(mealId)) {
+            return res.status(400).render('host/error', {
+                status: 400,
+                title: 'Invalid meal record',
+                message: 'The selected meal record ID is invalid.'
+            });
+        }
 
-        await MealUser.updateOne(
-            { _id: userId, groupId: user.groupId },
+        const result = await MealUser.updateOne(
+            { _id: userId, groupId: admin.groupId },
             { $pull: { meals: { _id: mealId } } }
         );
+        if (!result.matchedCount) {
+            return res.status(404).render('host/error', {
+                status: 404,
+                title: 'Meal record not found',
+                message: 'The selected meal record was not found in your group.'
+            });
+        }
 
         return res.redirect('/AddedMeal?deleted=1');
     } catch (error) {

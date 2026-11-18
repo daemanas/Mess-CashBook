@@ -1,0 +1,32 @@
+<div class="member-picker" data-member-picker>
+    <label class="label" for="<%= pickerId %>">
+        <%= pickerLabel %>
+        <span>Choose or enter a name</span>
+    </label>
+    <div class="member-picker-control">
+        <input class="input" id="<%= pickerId %>" type="text" name="<%= pickerName %>"
+               value="<%= pickerValue || '' %>" placeholder="<%= pickerPlaceholder %>"
+               maxlength="80" autocomplete="off" required data-member-input
+               aria-haspopup="listbox" aria-expanded="false" aria-controls="<%= pickerId %>-options">
+        <input type="hidden" name="memberId" value="<%= selectedMemberId || '' %>" data-member-id>
+        <button class="member-picker-toggle" type="button" aria-label="Show group members"
+                aria-expanded="false" aria-controls="<%= pickerId %>-menu" data-member-toggle>
+            <%- include('icon', { name: 'chevron-down' }) %>
+        </button>
+        <div class="member-picker-menu" id="<%= pickerId %>-menu" data-member-menu hidden>
+            <input class="member-picker-search" type="search" placeholder="Search members..."
+                   autocomplete="off" aria-label="Search group members" data-member-search>
+            <div class="member-picker-options" id="<%= pickerId %>-options" role="listbox" aria-label="Group members">
+                <% members.forEach(member => { %>
+                    <button class="member-picker-option" type="button" role="option"
+                            aria-selected="<%= String(member.id) === String(selectedMemberId || '') %>"
+                            data-member-option data-member-id="<%= member.id %>"
+                            data-member-name="<%= member.name %>"><%= member.name %></button>
+                <% }) %>
+            </div>
+            <p class="member-picker-empty" data-member-empty <%= members.length ? 'hidden' : '' %>>
+                <%= members.length ? 'No matching members.' : 'No registered group members found.' %>
+            </p>
+        </div>
+    </div>
+</div>

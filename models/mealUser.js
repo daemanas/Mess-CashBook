@@ -16,6 +16,11 @@ const mealUserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    memberId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
     meals: [mealSchema],
     groupId: {
         type: String,

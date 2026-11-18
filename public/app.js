@@ -117,6 +117,116 @@
         });
     }
 
+    /* ---------- searchable group member picker ---------- */
+    function initMemberPickers() {
+        const pickers = document.querySelectorAll('[data-member-picker]');
+        if (!pickers.length) return;
+        const closeTimers = new WeakMap();
+
+        const close = function (picker) {
+            const menu = picker.querySelector('[data-member-menu]');
+            const toggle = picker.querySelector('[data-member-toggle]');
+            const input = picker.querySelector('[data-member-input]');
+            if (!menu) return;
+
+            menu.classList.remove('is-open');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+            if (input) input.setAttribute('aria-expanded', 'false');
+            const previousTimer = closeTimers.get(menu);
+            if (previousTimer) window.clearTimeout(previousTimer);
+            const timer = window.setTimeout(function () {
+                if (!menu.classList.contains('is-open')) menu.hidden = true;
+                closeTimers.delete(menu);
+            }, 170);
+            closeTimers.set(menu, timer);
+        };
+
+        const open = function (picker) {
+            pickers.forEach(function (other) {
+                if (other !== picker) close(other);
+            });
+            const menu = picker.querySelector('[data-member-menu]');
+            const toggle = picker.querySelector('[data-member-toggle]');
+            const input = picker.querySelector('[data-member-input]');
+            const search = picker.querySelector('[data-member-search]');
+            if (!menu) return;
+
+            const closeTimer = closeTimers.get(menu);
+            if (closeTimer) window.clearTimeout(closeTimer);
+            closeTimers.delete(menu);
+            menu.hidden = false;
+            window.requestAnimationFrame(function () { menu.classList.add('is-open'); });
+            if (toggle) toggle.setAttribute('aria-expanded', 'true');
+            if (input) input.setAttribute('aria-expanded', 'true');
+            if (search) {
+                search.value = '';
+                search.focus();
+            }
+        };
+
+        pickers.forEach(function (picker) {
+            const input = picker.querySelector('[data-member-input]');
+            const memberId = picker.querySelector('[data-member-id]');
+            const toggle = picker.querySelector('[data-member-toggle]');
+            const menu = picker.querySelector('[data-member-menu]');
+            const search = picker.querySelector('[data-member-search]');
+            const empty = picker.querySelector('[data-member-empty]');
+            if (!input || !memberId || !toggle || !menu) return;
+
+            const filterOptions = function () {
+                const query = search ? search.value.trim().toLocaleLowerCase() : '';
+                let visibleCount = 0;
+                picker.querySelectorAll('[data-member-option]').forEach(function (option) {
+                    const visible = option.dataset.memberName.toLocaleLowerCase().includes(query);
+                    option.hidden = !visible;
+                    if (visible) visibleCount += 1;
+                });
+                if (empty) empty.hidden = visibleCount > 0;
+            };
+
+            toggle.addEventListener('click', function (event) {
+                event.stopPropagation();
+                if (menu.hidden) {
+                    open(picker);
+                    filterOptions();
+                }
+                else close(picker);
+            });
+            input.addEventListener('input', function () {
+                memberId.value = '';
+                picker.querySelectorAll('[data-member-option]').forEach(function (option) {
+                    option.setAttribute('aria-selected', 'false');
+                });
+            });
+            menu.addEventListener('click', function (event) { event.stopPropagation(); });
+            if (search) search.addEventListener('input', filterOptions);
+
+            picker.querySelectorAll('[data-member-option]').forEach(function (option) {
+                option.addEventListener('click', function () {
+                    input.value = option.dataset.memberName;
+                    memberId.value = option.dataset.memberId;
+                    picker.querySelectorAll('[data-member-option]').forEach(function (other) {
+                        other.setAttribute('aria-selected', other === option ? 'true' : 'false');
+                    });
+                    close(picker);
+                    input.focus();
+                });
+            });
+
+            picker.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && !menu.hidden) {
+                    event.preventDefault();
+                    close(picker);
+                    input.focus();
+                }
+            });
+        });
+
+        document.addEventListener('click', function () {
+            pickers.forEach(close);
+        });
+    }
+
     /* ---------- confirmation dialog ---------- */
     function buildConfirmModal() {
         const modal = document.createElement('div');
@@ -625,6 +735,7 @@
     ready(function () {
         initSidebar();
         initMonthPickers();
+        initMemberPickers();
         initConfirm();
         initSettlementEmailModal();
         initToasts();

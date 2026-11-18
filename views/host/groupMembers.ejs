@@ -55,7 +55,7 @@
     <div class="card-head">
         <div>
             <h2>Member list</h2>
-            <p><%= isAdmin ? 'Promote members or remove their login. Financial history is kept.' : 'Only mess admins can change member roles.' %></p>
+            <p><%= isAdmin ? 'Promote members, remove admin roles, or remove a login. Financial history is kept.' : 'Only mess admins can change member roles.' %></p>
         </div>
         <span class="badge"><%= members.length %> total</span>
     </div>
@@ -88,8 +88,16 @@
                             <% } else { %>
                                 <div class="table-actions">
                                     <% if (m.role !== 'admin') { %>
-                                        <form action="/settings/members/<%= m._id %>/make-admin" method="POST" style="display:inline;">
-                                            <button class="btn btn-secondary btn-sm" type="submit">Make admin</button>
+                                        <form action="/settings/members/<%= m._id %>/make-admin" method="POST"
+                                              data-confirm="Make <%= m.name %> an admin? They will be able to manage group members and meal records."
+                                              data-confirm-label="Make admin">
+                                            <button class="btn btn-secondary btn-sm" type="submit">Make Admin</button>
+                                        </form>
+                                    <% } else { %>
+                                        <form action="/settings/members/<%= m._id %>/remove-admin" method="POST"
+                                              data-confirm="Remove the admin role from <%= m.name %>? Their account will remain a group member."
+                                              data-confirm-label="Remove admin role">
+                                            <button class="btn btn-secondary btn-sm" type="submit">Remove Admin Role</button>
                                         </form>
                                     <% } %>
                                     <form action="/settings/members/<%= m._id %>/remove" method="POST" style="display:inline;"
