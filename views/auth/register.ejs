@@ -1,87 +1,154 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const f = locals.form || {};
+    const accountType = f.accountType || '';
+    const isMess = accountType === 'admin' || accountType === 'member';
+%>
+<%- include('../partials/auth-top', { pageTitle: 'Create your account', wide: true }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Register | CashBook</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body class="auth-body">
-    <%- include('../partials/loader') %>
+<div class="auth-card-head">
+    <a class="brand" href="/login">
+        <span class="brand-mark"><%- include('../partials/icon', { name: 'book' }) %></span>
+        <span>Cash<span style="color: var(--brand)">Book</span></span>
+    </a>
+    <h1>Create your account</h1>
+    <p>Choose how you will use CashBook, then finish verifying your email.</p>
+</div>
 
-    <div class="auth-card">
-        <h1>CashBook</h1>
-        <p class="subtitle">Complete Registration</p>
+<div class="auth-panel">
+    <% if (locals.error) { %>
+        <div class="alert alert-error" role="alert" style="margin-bottom: 15px;">
+            <%- include('../partials/icon', { name: 'alert' }) %>
+            <span><%= error %></span>
+        </div>
+    <% } %>
 
-        <form action="/register" method="POST">
-            
-            <label>Account Type</label>
-            <select name="accountType" id="accountType" required>
-                <option value="">-- Select --</option>
-                <!-- <option value="personal">Personal Use</option> -->
-                <option value="admin">Create Group</option>
-                <option value="member">Join Group</option>
-            </select>
+    <form class="form" action="/register" method="POST" autocomplete="on">
+        <input type="hidden" name="accountType" value="<%= accountType %>">
 
-            <div id="groupIdBox" style="display:none;">
-                <label>Group ID</label>
-                <input type="text" name="groupId" placeholder="Enter Group ID">
+        <div class="field">
+            <span class="label">How will you use CashBook?</span>
+            <div class="type-grid" role="radiogroup" aria-label="Account type">
+                <label class="type-option">
+                    <input type="radio" name="accountMode" value="personal"
+                           <%= accountType === 'personal' ? 'checked' : '' %>>
+                    <span class="type-card">
+                        <span class="type-icon"><%- include('../partials/icon', { name: 'user' }) %></span>
+                        <strong>Personal use</strong>
+                        <span>Track your own income, expenses and monthly reports. No group, no shared records.</span>
+                    </span>
+                </label>
+
+                <label class="type-option">
+                    <input type="radio" name="accountMode" value="mess"
+                           <%= isMess ? 'checked' : '' %>>
+                    <span class="type-card">
+                        <span class="type-icon"><%- include('../partials/icon', { name: 'users' }) %></span>
+                        <strong>Mess / Group account</strong>
+                        <span>Shared contributions, expenses, meals and settlements for your mess.</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <div class="subtype" data-mess-fields <%= isMess ? '' : 'hidden' %>>
+            <span class="label">Mess setup</span>
+            <div class="subtype-options">
+                <label class="subtype-chip">
+                    <input type="radio" name="messMode" value="create"
+                           <%= accountType !== 'member' ? 'checked' : '' %>>
+                    Create a new mess
+                </label>
+                <label class="subtype-chip">
+                    <input type="radio" name="messMode" value="join"
+                           <%= accountType === 'member' ? 'checked' : '' %>>
+                    Join an existing mess
+                </label>
             </div>
 
-            <input
-                type="text"
-                name="name"
-                placeholder="Full Name"
-                required
-            >
+            <div class="field" data-create-fields <%= accountType === 'admin' ? '' : 'hidden' %>>
+                <label class="label" for="messNameInput">Mess name</label>
+                <input class="input" id="messNameInput" type="text" name="messName"
+                       value="<%= f.messName || '' %>" placeholder="e.g. Sunrise Mess"
+                       maxlength="80" autocomplete="organization">
+                <p class="hint">Your mess gets a unique Group ID automatically. Share it with members who need to join.</p>
+            </div>
 
-            <input
-                type="email"
-                name="email"
-                placeholder="Email (same as OTP)"
-                required
-            >
+            <div class="field" data-join-fields <%= accountType === 'member' ? '' : 'hidden' %>>
+                <label class="label" for="groupIdInput">Group ID</label>
+                <input class="input" id="groupIdInput" type="text" name="groupId"
+                       value="<%= f.groupId || '' %>" placeholder="Paste the Group ID from your admin"
+                       maxlength="24" autocomplete="off" spellcheck="false">
+                <p class="hint">Ask your mess admin for the Group ID. It is shown in their Settings page.</p>
+            </div>
+        </div>
 
-            <input
-                type="text"
-                name="otp"
-                placeholder="Enter OTP"
-                required
-            >
+        <div class="form-row">
+            <div class="field">
+                <label class="label" for="reg-name">Full name</label>
+                <input class="input" id="reg-name" type="text" name="name"
+                       value="<%= f.name || '' %>" placeholder="Your full name"
+                       autocomplete="name" maxlength="80" required>
+            </div>
 
-            <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                required
-            >
+            <div class="field">
+                <label class="label" for="reg-email">Email address</label>
+                <input class="input" id="reg-email" type="email" name="email"
+                       value="<%= f.email || '' %>" placeholder="you@example.com"
+                       autocomplete="email" required>
+            </div>
+        </div>
 
-            <button type="submit">Register</button>
+        <div class="field">
+            <label class="label" for="reg-otp">
+                Verification code
+                <span>Sent to your email</span>
+            </label>
+            <div class="input-group">
+                <input class="input otp-input" id="reg-otp" type="text" name="otp"
+                       inputmode="numeric" pattern="[0-9]*" maxlength="6"
+                       placeholder="000000" autocomplete="one-time-code" required>
+                <button class="btn btn-secondary" type="submit" formaction="/generateOTP" formnovalidate>
+                    Email code
+                </button>
+            </div>
+            <p class="hint">Codes expire after 5 minutes. Press “Email code” to send a fresh one to this address.</p>
+        </div>
 
-        </form>
+        <div class="form-row">
+            <div class="field">
+                <label class="label" for="reg-password">Password</label>
+                <div class="password-field">
+                    <input class="input" id="reg-password" type="password" name="password"
+                           placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required>
+                    <button class="password-toggle" type="button" data-password-toggle="reg-password" aria-label="Show password">
+                        <%- include('../partials/icon', { name: 'eye' }) %>
+                    </button>
+                </div>
+            </div>
 
-        <p class="switch-text">
-            Already have an account?
-            <a href="/login">Login</a>
-        </p>
-        <p class="switch-text">
-            Generate OTP ?
-            <a href="/generateOTP">Generate Otp</a>
-        </p>
+            <div class="field">
+                <label class="label" for="reg-confirm">Confirm password</label>
+                <div class="password-field">
+                    <input class="input" id="reg-confirm" type="password" name="confirmPassword"
+                           placeholder="Repeat your password" autocomplete="new-password" minlength="8" required>
+                    <button class="password-toggle" type="button" data-password-toggle="reg-confirm" aria-label="Show password">
+                        <%- include('../partials/icon', { name: 'eye' }) %>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-primary btn-block" type="submit">Create account</button>
+        </div>
+    </form>
+
+    <div class="auth-links">
+        <span>Already have an account?</span>
+        <a href="/login">Sign in</a>
     </div>
+</div>
 
-    <script>
-        document.getElementById('accountType').addEventListener('change', e => {
-            document.getElementById('groupIdBox').style.display =
-                e.target.value === 'member' ? 'block' : 'none';
-        });
-    </script>
+<p class="auth-foot">By creating an account you agree to keep your login details private. Existing records are never overwritten.</p>
 
-<%- include('../partials/pwa') %>
-</body>
-</html>
+<%- include('../partials/auth-bottom') %>

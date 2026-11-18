@@ -1,122 +1,135 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const canDelete = account.isPersonal || account.isAdmin;
+    const dayCount = expenseCards.length;
+    const averageDay = dayCount > 0 ? grandTotal / dayCount : 0;
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Expenses' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Dashboard</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %> 
-    <div id="app">
-        <%- include('../partials/header') %>
-        <!-- Main Content -->
-        <main class="main-content">
-            <h2>🥦 Expension Dashboard</h2> 
-            <br>   
-            <%- include('../partials/monthFilter') %>      
-            <br>              
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Expenses</p>
+        <h1 class="page-title">Expense records</h1>
+        <p class="page-sub"><%= periodLabel %> · every purchase recorded, grouped by the day it was made.</p>
+    </div>
+    <div class="page-actions">
+        <%- include('../partials/monthFilter') %>
+        <a class="btn btn-primary" href="/add-expense">
+            <%- include('../partials/icon', { name: 'plus' }) %>
+            Add expense
+        </a>
+    </div>
+</div>
 
-            <% if (expenseCards.length > 0) { %>
-                <% expenseCards.forEach(card => { %>
+<div class="grid-3" style="margin-bottom: 16px;">
+    <article class="stat is-expense">
+        <div class="stat-top">
+            <span class="stat-label">Total expenses</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'receipt' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(grandTotal) %></p>
+        <p class="stat-note"><%= periodLabel %></p>
+    </article>
 
-                    <div class="data_containner">
-                        <h3>
-                            📅 <%= new Date(card.date).toLocaleDateString('en-IN') %>
-                        </h3>
+    <article class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Items</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'list' }) %></span>
+        </div>
+        <p class="stat-value"><%= entryCount %></p>
+        <p class="stat-note">Across <%= dayCount %> <%= dayCount === 1 ? 'day' : 'days' %></p>
+    </article>
 
-                        <div class="card">
-                            <div class="table-container">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Vegetable</th>
-                                            <th>Amount</th>
-                                            <th>AC</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+    <article class="stat is-meal">
+        <div class="stat-top">
+            <span class="stat-label">Average per day</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'chart' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(averageDay) %></p>
+        <p class="stat-note">Days with recorded spending</p>
+    </article>
+</div>
 
-                                        <% card.items.forEach(item => { %>
-                                            <tr>
-                                                <td><%= item.name %></td>
-                                                <td>₹ <%= item.amount %></td>
-                                                
-                                                <!-- 🔵 3 DOT MENU -->
-                                                <td>
-                                                    <div class="dropdown" style="display:inline-block; float:right;">
-                                                        <button class="dot-btn">⋮</button>
-
-                                                        <div class="dropdown-menu">
-                                                            <form action="/expense-delete-single/<%= item._id %>"
-                                                                method="POST">
-                                                                <button type="submit"
-                                                                        class="delete-btn"
-                                                                        onclick="return confirm('এই আইটেমটি ডিলিট করবেন?')">
-                                                                    Delete
-                                                                </button>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <% }) %>
-
-                                        <!-- Card Total -->
-                                        <tr class="total-row">
-                                            <td><strong>Total</strong></td>                                         
-                                            <td><strong>₹ <%= card.total %></strong></td>
-                                            <td></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+<% if (!expenseCards.length) { %>
+    <section class="card">
+        <div class="empty-state">
+            <span class="empty-icon"><%- include('../partials/icon', { name: 'receipt' }) %></span>
+            <h3>No expenses in <%= periodLabel %></h3>
+            <p>Record purchases to keep the month’s spending, per-meal price and settlement accurate.</p>
+            <a class="btn btn-primary btn-sm" href="/add-expense">
+                <%- include('../partials/icon', { name: 'plus' }) %>
+                Add an expense
+            </a>
+        </div>
+    </section>
+<% } else { %>
+    <div class="stack">
+        <% expenseCards.forEach(card => { %>
+            <section class="card">
+                <div class="card-head">
+                    <div>
+                        <h2><%= new Date(card.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) %></h2>
+                        <p><%= card.items.length %> <%= card.items.length === 1 ? 'item' : 'items' %> · <%= money(card.total) %></p>
                     </div>
-
-                    <form action="/expense-delete-date/<%= card.date.toISOString() %>" 
-                        method="POST" 
-                        style="margin-top:10px;">
-
-                        <button class="btn btn-danger btn-sm"
-                            onclick="return confirm('এই দিনের সব ভেজিটেবল ডিলিট করতে চান?')">
-                            Delete Full Card
-                        </button>
-
-                    </form>
-
-
-                <% }) %>
-
-                <!-- 🔥 FINAL GRAND TOTAL -->
-                <div class="data_containner">
-                    <div class="card">
-                        <div class="table-container">
-                            <table>
-                                <tr class="total-row">
-                                    <td><strong>Grand Total</strong></td>
-                                    <td><strong>₹ <%= grandTotal %></strong></td>
-                                </tr>
-                            </table>
-                        </div>
+                    <div class="page-actions">
+                        <a class="btn btn-secondary btn-sm" href="/add-expense">
+                            <%- include('../partials/icon', { name: 'plus' }) %>
+                            Add
+                        </a>
+                        <% if (canDelete) { %>
+                            <form action="/expense-delete-date/<%= card.key %>" method="POST"
+                                  data-confirm="Delete every expense recorded on this date? This cannot be undone."
+                                  data-confirm-label="Delete day">
+                                <button class="btn btn-danger btn-sm" type="submit">
+                                    <%- include('../partials/icon', { name: 'trash' }) %>
+                                    Delete day
+                                </button>
+                            </form>
+                        <% } %>
                     </div>
                 </div>
 
-            <% } else { %>
-                <p>No vegetable expense found</p>
-            <% } %>
-
-
-        </main>
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th class="is-right">Amount</th>
+                                <% if (canDelete) { %><th class="is-right">Action</th><% } %>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% card.items.forEach(item => { %>
+                                <tr>
+                                    <td><%= item.name %></td>
+                                    <td class="is-right"><span class="table-amount is-expense"><%= money(item.amount) %></span></td>
+                                    <% if (canDelete) { %>
+                                        <td class="is-right">
+                                            <div class="table-actions">
+                                                <form action="/expense-delete-single/<%= item._id %>" method="POST"
+                                                      data-confirm="Delete <%= item.name %> (<%= money(item.amount) %>)?">
+                                                    <button class="btn btn-danger btn-sm" type="submit" aria-label="Delete expense">
+                                                        <%- include('../partials/icon', { name: 'trash' }) %>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    <% } %>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Day total</td>
+                                <td class="is-right"><%= money(card.total) %></td>
+                                <% if (canDelete) { %><td></td><% } %>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+        <% }) %>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+<% } %>
 
-
-
+<%- include('../partials/layout-bottom') %>

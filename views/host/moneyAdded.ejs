@@ -1,141 +1,137 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const canDelete = account.isPersonal || account.isAdmin;
+    const average = entryCount > 0 ? grandTotal / entryCount : 0;
+%>
+<%- include('../partials/layout-top', { pageTitle: isGroupAccount ? 'Money added' : 'Income' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Dashboard</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %> 
-    <div id="app">
-        <%- include('../partials/header') %>
-
-        <main class="main-content">
-            <h2>Members</h2>
-            <br>   
-            <%- include('../partials/monthFilter') %>      
-            <br>   
-        <% if (groups && groups.length > 0) { %>
-
-            <% groups.forEach(group => { %>
-                <div class="data_containner">
-
-                    <!-- Card Title -->
-                    <h2><%= group.title %></h2>
-
-                    <div class="card">
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Amount</th>
-                                        <th>AC</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                    <% group.entries.forEach(e => { %>
-                                        <tr>
-                                            <td><%= new Date(e.entry_date).toLocaleDateString('en-IN') %></td>
-                                            <td>₹<%= e.entry_amount %></td>
-                                            <td>
-                                                <!-- 🔵 3 DOT MENU -->
-                                                <div class="dropdown" style="display:inline-block; float:right;">
-                                                    <button class="dot-btn">⋮</button>
-
-                                                    <div class="dropdown-menu">
-                                                        <form action="/money-delete-single/<%= e._id %>"
-                                                            method="POST">
-                                                            <button type="submit"
-                                                                    class="delete-btn"
-                                                                    onclick="return confirm('এই এন্ট্রিটি ডিলিট করবেন?')">
-                                                                Delete
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <% }) %>
-
-                                    <!-- 🔹 Card-wise Total -->
-                                    <tr class="total-row">
-                                        <td><strong>Total (<%= group.title %>)</strong></td>
-                                        <td><strong>₹<%= group.total %></strong></td>
-                                        <td></td>
-                                    </tr>
-
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <!-- এই বাটনে ক্লিক করলে সেই একই নাম নিয়ে নতুন entry add করবে -->
-                <a href="/add-entry?title=<%= encodeURIComponent(group.title) %>" class="btn">
-                    Money Add
-                </a>
-
-                <form action="/money-delete-group/<%= encodeURIComponent(group.title) %>" 
-                    method="POST" 
-                    style="margin-top:10px;">
-
-                    <button class="btn btn-danger btn-sm"
-                        onclick="return confirm('এই পুরো কার্ড ডিলিট করতে চান?')">
-                        Delete Full Card
-                    </button>
-
-                </form>
-
-
-        
-
-
-
-
-            <% }) %>
-
-            <!-- 🔥 Grand Total -->
-            <div class="data_containner">
-                <div class="card">
-                    <div class="table-container">
-                        <table >
-                            <tr class="total-row">
-                                <td><strong>Grand Total</strong></td>
-                                <td><strong>₹<%= grandTotal %></strong></td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        <% } else { %>
-            <h2>No entries found</h2>
-        <% } %>
-
-        </main>
-
-
+<div class="page-head">
+    <div>
+        <p class="eyebrow"><%= isGroupAccount ? 'Contributions' : 'Income' %></p>
+        <h1 class="page-title"><%= isGroupAccount ? 'Money added' : 'Income records' %></h1>
+        <p class="page-sub"><%= periodLabel %> · grouped by <%= isGroupAccount ? 'member' : 'income source' %>.</p>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+    <div class="page-actions">
+        <%- include('../partials/monthFilter') %>
+        <a class="btn btn-primary" href="/add-entry">
+            <%- include('../partials/icon', { name: 'plus' }) %>
+            <%= isGroupAccount ? 'Add money' : 'Add income' %>
+        </a>
+    </div>
+</div>
 
+<div class="grid-3" style="margin-bottom: 16px;">
+    <article class="stat is-income">
+        <div class="stat-top">
+            <span class="stat-label">Total <%= isGroupAccount ? 'contributions' : 'income' %></span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'wallet' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(grandTotal) %></p>
+        <p class="stat-note"><%= periodLabel %></p>
+    </article>
 
+    <article class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Entries</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'receipt' }) %></span>
+        </div>
+        <p class="stat-value"><%= entryCount %></p>
+        <p class="stat-note">Individual records this month</p>
+    </article>
 
+    <article class="stat is-violet">
+        <div class="stat-top">
+            <span class="stat-label">Average entry</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'chart' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(average) %></p>
+        <p class="stat-note">Across <%= groups.length %> <%= isGroupAccount ? 'members' : 'sources' %></p>
+    </article>
+</div>
 
+<% if (!groups.length) { %>
+    <section class="card">
+        <div class="empty-state">
+            <span class="empty-icon"><%- include('../partials/icon', { name: 'wallet' }) %></span>
+            <h3>No <%= isGroupAccount ? 'contributions' : 'income' %> in <%= periodLabel %></h3>
+            <p>Add an entry or choose another month to see recorded amounts grouped here.</p>
+            <a class="btn btn-primary btn-sm" href="/add-entry">
+                <%- include('../partials/icon', { name: 'plus' }) %>
+                Add the first entry
+            </a>
+        </div>
+    </section>
+<% } else { %>
+    <div class="stack">
+        <% groups.forEach(group => { %>
+            <section class="card">
+                <div class="card-head">
+                    <div>
+                        <h2><%= group.title %></h2>
+                        <p><%= group.entries.length %> <%= group.entries.length === 1 ? 'entry' : 'entries' %> · <%= money(group.total) %></p>
+                    </div>
+                    <div class="page-actions">
+                        <a class="btn btn-secondary btn-sm" href="/add-entry?title=<%= encodeURIComponent(group.title) %>">
+                            <%- include('../partials/icon', { name: 'plus' }) %>
+                            Add
+                        </a>
+                        <% if (canDelete) { %>
+                            <form action="/money-delete-group/<%= encodeURIComponent(group.title) %>" method="POST"
+                                  data-confirm="Delete every <%= group.title %> entry for this month? This cannot be undone."
+                                  data-confirm-label="Delete card">
+                                <button class="btn btn-danger btn-sm" type="submit">
+                                    <%- include('../partials/icon', { name: 'trash' }) %>
+                                    Delete card
+                                </button>
+                            </form>
+                        <% } %>
+                    </div>
+                </div>
 
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th class="is-right">Amount</th>
+                                <% if (canDelete) { %><th class="is-right">Action</th><% } %>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% group.entries.forEach(entry => { %>
+                                <tr>
+                                    <td>
+                                        <%= new Date(entry.entry_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                                        <span class="table-sub">Added <%= new Date(entry.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) %></span>
+                                    </td>
+                                    <td class="is-right"><span class="table-amount is-income"><%= money(entry.entry_amount) %></span></td>
+                                    <% if (canDelete) { %>
+                                        <td class="is-right">
+                                            <div class="table-actions">
+                                                <form action="/money-delete-single/<%= entry._id %>" method="POST"
+                                                      data-confirm="Delete this <%= money(entry.entry_amount) %> entry?">
+                                                    <button class="btn btn-danger btn-sm" type="submit" aria-label="Delete entry">
+                                                        <%- include('../partials/icon', { name: 'trash' }) %>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    <% } %>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Total</td>
+                                <td class="is-right"><%= money(group.total) %></td>
+                                <% if (canDelete) { %><td></td><% } %>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+        <% }) %>
+    </div>
+<% } %>
 
-
-
-
-
-
-
-
+<%- include('../partials/layout-bottom') %>

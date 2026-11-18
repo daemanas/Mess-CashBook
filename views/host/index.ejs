@@ -1,195 +1,232 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const displayName = (profile && profile.name) ? profile.name : 'there';
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Dashboard' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Dashboard</title>
-    <link rel="stylesheet" href="/style.css">
-
-</head>
-<body>
-    <%- include('../partials/loader') %> 
-    <div id="app">
-        <%- include('../partials/header') %>
-        <!-- Main Content -->
-        <main class="main-content">
-            <%- include('../partials/monthFilter') %>              
-            <!-- Dashboard Page -->
-            <div id="dashboard-page" class="page">
-                <h2>Dashboard</h2>
-              <!--   <div class="dashboard-cards">
-                    <div class="dashboard-card income">
-                        <h3> Total mess Fund</h3>
-                        <div class="card-value text-success">₹<%= incomeTotal %></div>
-                        <p>+12% from yesterday</p>
-                    </div>
-                    <div class="dashboard-card expense">
-                        <h3>Total expenses</h3>
-                        <div class="card-value text-danger"> ₹<%= expenseTotal %></div>
-                        <p>-5% from yesterday</p>
-                    </div>
-                    <div class="dashboard-card balance">
-                        <h3>Total Avl Balance</h3>
-                        <div class="card-value"> ₹<%= availableBalance %></div>
-                        <p>All accounts</p>
-                    </div>
-                    <div class="dashboard-card expense">
-                        <h3>Pre Meal Price</h3>
-                        <div class="card-value text-danger"> ₹<%= perMealPrice %></div>
-                        <p>-5% from yesterday</p>
-                    </div>
-                </div> -->
-
-                                
-                <div class="pro-dashboard">
-                    <div class="main-balance-card">
-                        <div class="balance-info">
-                            <span class="label-pro">Total Available Balance</span>
-                            <h1 class="amount-pro">₹<%= availableBalance %></h1>
-                            <div class="balance-tag">Live Updates Enabled</div>
-                        </div>
-                        <div class="balance-visual">
-                            <div class="circle-blur"></div>
-                        </div>
-                    </div>
-
-                    <div class="stats-container">
-                        <div class="pro-card">
-                            <div class="pro-card-header">
-                                <span class="icon-bg income-icon">📥</span>
-                                <span class="pro-badge positive">+12.5%</span>
-                            </div>
-                            <div class="pro-card-body">
-                                <h3>Total Mess Fund</h3>
-                                <div class="pro-amount">₹<%= incomeTotal %></div>
-                            </div>
-                        </div>
-
-                        <div class="pro-card">
-                            <div class="pro-card-header">
-                                <span class="icon-bg expense-icon">📤</span>
-                                <span class="pro-badge negative">-4.2%</span>
-                            </div>
-                            <div class="pro-card-body">
-                                <h3>Total Expenses</h3>
-                                <div class="pro-amount">₹<%= expenseTotal %></div>
-                            </div>
-                        </div>
-
-                        <div class="pro-card full-width">
-                            <div class="pro-card-content">
-                                <div class="meal-meta">
-                                    <span class="icon-bg meal-icon">🍛</span>
-                                    <div class="text-group">
-                                        <h3>Per Meal Price</h3>
-                                        <!-- <p>Optimized for current market rate</p> -->
-                                        <p ><B>Minimum 25 meals required for members staying 20 days or more</B></p>
-                                    </div>
-                                </div>
-                                <div class="pro-amount highlight">₹<%= perMealPrice %></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="chart-container">
-                    <h3>Weekly Summary</h3>
-                    <div class="chart">
-                        <div class="chart-bar">
-                            <div class="bar" style="height: 70%;">
-                                <div class="bar-value"> ₹300</div>
-                                <div class="bar-label">Mon</div>
-                            </div>
-                            <div class="bar" style="height: 50%;">
-                                <div class="bar-value"> ₹500</div>
-                                <div class="bar-label">Tue</div>
-                            </div>
-                            <div class="bar" style="height: 90%;">
-                                <div class="bar-value"> ₹900</div>
-                                <div class="bar-label">Wed</div>
-                            </div>
-                            <div class="bar" style="height: 60%;">
-                                <div class="bar-value"> ₹600</div>
-                                <div class="bar-label">Thu</div>
-                            </div>
-                            <div class="bar" style="height: 80%;">
-                                <div class="bar-value"> ₹800</div>
-                                <div class="bar-label">Fri</div>
-                            </div>
-                            <div class="bar" style="height: 40%;">
-                                <div class="bar-value"> ₹400</div>
-                                <div class="bar-label">Sat</div>
-                            </div>
-                            <div class="bar" style="height: 30%;">
-                                <div class="bar-value"> ₹300</div>
-                                <div class="bar-label">Sun</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Recent Transactions</h3>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Title</th>
-                                    <th>Category</th>
-                                    <th>Amount</th>
-                                    <th>Type</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% if (recentTransactions.length === 0) { %>
-                                    <tr>
-                                    <td colspan="5">No recent activity</td>
-                                    </tr>
-                                <% } %>
-
-                                <% recentTransactions.forEach(tx => { %>
-                                    <tr>
-                                    <td><%= new Date(tx.date).toLocaleDateString('en-IN') %></td>
-                                    <td><%= tx.name %></td>
-                                    <td><%= tx.category %></td>
-
-                                    <td>
-                                        <% if (tx.type === 'Meal') { %>
-                                        <%= tx.amount %> meals
-                                        <% } else { %>
-                                        ₹ <%= tx.amount %>
-                                        <% } %>
-                                    </td>
-
-                                    <td>
-                                        <% if (tx.type === 'Income') { %>
-                                        <span class="badge badge-income">Income</span>
-                                        <% } else if (tx.type === 'Expense') { %>
-                                        <span class="badge badge-expense">Expense</span>
-                                        <% } else { %>
-                                        <span class="badge badge-meal">Meal</span>
-                                        <% } %>
-                                    </td>
-                                    </tr>
-                                <% }) %>
-                            </tbody>
-                            
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </main>
+<div class="page-head">
+    <div>
+        <p class="eyebrow"><%= isGroupAccount ? 'Group overview' : 'Personal overview' %></p>
+        <h1 class="page-title">Welcome, <%= displayName %></h1>
+        <p class="page-sub">
+            <%= isGroupAccount
+                ? (account.messName ? account.messName + ' · ' : '') + 'Contributions, expenses and meals for ' + periodLabel + '.'
+                : 'Your income, spending and balance for ' + periodLabel + '.' %>
+        </p>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+    <div class="page-actions">
+        <%- include('../partials/monthFilter') %>
+        <a class="btn btn-primary" href="/add-entry">
+            <%- include('../partials/icon', { name: 'plus' }) %>
+            <%= isGroupAccount ? 'Add money' : 'Add income' %>
+        </a>
+    </div>
+</div>
+
+<section class="stat-grid" aria-label="Summary for <%= periodLabel %>">
+    <article class="stat is-violet">
+        <div class="stat-top">
+            <span class="stat-label">Available balance</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'wallet' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(availableBalance) %></p>
+        <p class="stat-note"><%= isGroupAccount ? 'Contributions less expenses' : 'Income less expenses' %></p>
+    </article>
+
+    <article class="stat is-income">
+        <div class="stat-top">
+            <span class="stat-label"><%= isGroupAccount ? 'Contributions' : 'Income' %></span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-up' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(incomeTotal) %></p>
+        <p class="stat-note"><%= incomeCount %> <%= incomeCount === 1 ? 'entry' : 'entries' %> this month</p>
+    </article>
+
+    <article class="stat is-expense">
+        <div class="stat-top">
+            <span class="stat-label">Expenses</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-down' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(expenseTotal) %></p>
+        <p class="stat-note"><%= expenseCount %> <%= expenseCount === 1 ? 'entry' : 'entries' %> this month</p>
+    </article>
+
+    <% if (isGroupAccount) { %>
+        <article class="stat is-meal">
+            <div class="stat-top">
+                <span class="stat-label">Per meal price</span>
+                <span class="stat-icon"><%- include('../partials/icon', { name: 'meal' }) %></span>
+            </div>
+            <p class="stat-value"><%= money(perMealPrice) %></p>
+            <p class="stat-note"><%= Number(grandTotalFood || 0).toLocaleString('en-IN') %> meals recorded</p>
+        </article>
+    <% } else { %>
+        <article class="stat is-teal">
+            <div class="stat-top">
+                <span class="stat-label">Transactions</span>
+                <span class="stat-icon"><%- include('../partials/icon', { name: 'receipt' }) %></span>
+            </div>
+            <p class="stat-value"><%= transactionCount %></p>
+            <p class="stat-note">Recorded in <%= periodLabel %></p>
+        </article>
+    <% } %>
+</section>
+
+<section class="card mt-2" aria-labelledby="trend-title">
+    <div class="card-head">
+        <div>
+            <h2 id="trend-title">Performance</h2>
+            <p><%= isGroupAccount ? 'Contributions and expenses' : 'Income and spending' %> · last six months</p>
+        </div>
+        <div class="trend-legend" aria-hidden="true">
+            <span class="is-income"><%= isGroupAccount ? 'Contributions' : 'Income' %></span>
+            <span class="is-expense">Expenses</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="trend-chart" role="group" aria-label="Six month trend of <%= isGroupAccount ? 'contributions and expenses' : 'income and expenses' %>">
+            <% trend.forEach((row, index) => { %>
+                <%
+                    const incomeHeight = Math.max(row.income > 0 ? 4 : 1.5, Math.round((row.income / trendMax) * 100));
+                    const expenseHeight = Math.max(row.expense > 0 ? 4 : 1.5, Math.round((row.expense / trendMax) * 100));
+                    const isCurrent = row.month === month && row.year === year;
+                %>
+                <a class="trend-col <%= isCurrent ? 'is-current' : '' %>"
+                   href="/?month=<%= row.month %>&year=<%= row.year %>"
+                   title="<%= row.label %> <%= row.year %> · <%= isGroupAccount ? 'Contributions' : 'Income' %> <%= money(row.income) %> · Expenses <%= money(row.expense) %>"
+                   aria-label="<%= row.label %> <%= row.year %>. <%= isGroupAccount ? 'Contributions' : 'Income' %> <%= money(row.income) %>, expenses <%= money(row.expense) %>.">
+                    <span class="trend-bars" aria-hidden="true">
+                        <span class="trend-bar is-income <%= row.income > 0 ? '' : 'is-zero' %>" style="--h: <%= incomeHeight %>; --i: <%= index %>;"></span>
+                        <span class="trend-bar is-expense <%= row.expense > 0 ? '' : 'is-zero' %>" style="--h: <%= expenseHeight %>; --i: <%= index %>;"></span>
+                    </span>
+                    <span class="trend-label"><%= row.label %></span>
+                </a>
+            <% }) %>
+        </div>
+    </div>
+</section>
+
+<div class="split mt-2">
+    <section class="card" aria-labelledby="recent-title">
+        <div class="card-head">
+            <div>
+                <h2 id="recent-title">Recent activity</h2>
+                <p>Latest <%= periodLabel %> movements</p>
+            </div>
+            <a class="btn-link" href="/transactions?month=<%= month %>&year=<%= year %>">View all</a>
+        </div>
+
+        <% if (!recentTransactions.length) { %>
+            <div class="empty-state">
+                <span class="empty-icon"><%- include('../partials/icon', { name: 'receipt' }) %></span>
+                <h3>Nothing recorded yet</h3>
+                <p>Entries you add for this month will appear here with their date and amount.</p>
+                <a class="btn btn-secondary btn-sm" href="/add-entry"><%= isGroupAccount ? 'Add the first contribution' : 'Add your first income' %></a>
+            </div>
+        <% } else { %>
+            <ul class="list">
+                <% recentTransactions.forEach(tx => { %>
+                    <li class="list-item">
+                        <span class="list-indicator <%= tx.type === 'expense' ? 'is-expense' : (tx.type === 'meal' ? 'is-meal' : '') %>">
+                            <%- include('../partials/icon', { name: tx.type === 'expense' ? 'arrow-down' : (tx.type === 'meal' ? 'meal' : 'arrow-up') }) %>
+                        </span>
+                        <div class="list-copy">
+                            <strong><%= tx.title %></strong>
+                            <% if (tx.detail) { %><span><%= tx.detail %></span><% } %>
+                        </div>
+                        <time class="list-date" datetime="<%= new Date(tx.date).toISOString() %>">
+                            <%= new Date(tx.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) %>
+                        </time>
+                        <span class="list-amount <%= tx.type === 'expense' ? 'is-expense' : (tx.type === 'meal' ? 'is-meal' : '') %>">
+                            <%= tx.type === 'expense' ? '−' : (tx.type === 'meal' ? '' : '+') %><%= tx.type === 'meal' ? tx.amount + (Number(tx.amount) === 1 ? ' meal' : ' meals') : money(tx.amount) %>
+                        </span>
+                    </li>
+                <% }) %>
+            </ul>
+        <% } %>
+    </section>
+
+    <div class="stack">
+        <section class="card">
+            <div class="card-head">
+                <h2>Quick actions</h2>
+            </div>
+            <div class="card-body stack-sm">
+                <a class="btn btn-secondary btn-block" href="/add-entry">
+                    <%- include('../partials/icon', { name: 'plus' }) %>
+                    <%= isGroupAccount ? 'Record a contribution' : 'Record income' %>
+                </a>
+                <a class="btn btn-secondary btn-block" href="/add-expense">
+                    <%- include('../partials/icon', { name: 'minus' }) %>
+                    Add an expense
+                </a>
+                <% if (isGroupAccount) { %>
+                    <a class="btn btn-secondary btn-block" href="/add-Meal">
+                        <%- include('../partials/icon', { name: 'meal' }) %>
+                        Add today’s meal count
+                    </a>
+                    <a class="btn btn-secondary btn-block" href="/final-settlement">
+                        <%- include('../partials/icon', { name: 'shield' }) %>
+                        Open final settlement
+                    </a>
+                <% } else { %>
+                    <a class="btn btn-secondary btn-block" href="/reports">
+                        <%- include('../partials/icon', { name: 'chart' }) %>
+                        Open monthly report
+                    </a>
+                    <a class="btn btn-secondary btn-block" href="/year-history">
+                        <%- include('../partials/icon', { name: 'calendar' }) %>
+                        Browse year history
+                    </a>
+                <% } %>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-head">
+                <h2><%= isGroupAccount ? 'This mess' : 'This month' %></h2>
+            </div>
+            <div class="card-body">
+                <dl class="detail-list">
+                    <% if (isGroupAccount) { %>
+                        <div class="detail-row">
+                            <dt>Mess</dt>
+                            <dd><%= account.messName || 'Mess account' %></dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Group ID</dt>
+                            <dd><%= account.groupId || '—' %></dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Members</dt>
+                            <dd><%= memberCount %></dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Meals recorded</dt>
+                            <dd><%= Number(grandTotalFood || 0).toLocaleString('en-IN') %></dd>
+                        </div>
+                    <% } else { %>
+                        <div class="detail-row">
+                            <dt>Income</dt>
+                            <dd><%= money(incomeTotal) %></dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Expenses</dt>
+                            <dd><%= money(expenseTotal) %></dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Saved</dt>
+                            <dd><%= money(availableBalance) %></dd>
+                        </div>
+                        <div class="detail-row">
+                            <dt>Account type</dt>
+                            <dd><span class="badge badge-info">Personal</span></dd>
+                        </div>
+                    <% } %>
+                </dl>
+            </div>
+        </section>
+    </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

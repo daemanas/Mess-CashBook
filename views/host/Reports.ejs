@@ -1,74 +1,190 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const maxShare = Math.max(1, ...contributors.map(item => item.share));
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Reports' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Report</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %> 
-        <!-- Main App (hidden initially) -->
-    <div id="app">
-        <%- include('../partials/header') %>    
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Reports Page -->
-            <div id="reports-page" class="page">
-                <h2>Reports</h2>
-                <div class="d-flex justify-between align-center mb-3">
-                    <h3>Monthly Summary</h3>
-                    <button class="btn">Export Report</button>
-                </div>
-                <div class="dashboard-cards">
-                    <div class="card">
-                        <h3 class="text-center">Income vs Expense</h3>
-                        <div class="chart" id="pie-chart">
-                            <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
-                                <div style="width: 200px; height: 200px; border-radius: 50%; background: conic-gradient(var(--success) 0% 65%, var(--danger) 65% 100%);"></div>
-                            </div>
-                            <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 1rem;">
-                                <div><span style="display: inline-block; width: 12px; height: 12px; background: var(--success); border-radius: 50%; margin-right: 5px;"></span> Income (65%)</div>
-                                <div><span style="display: inline-block; width: 12px; height: 12px; background: var(--danger); border-radius: 50%; margin-right: 5px;"></span> Expense (35%)</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3 class="text-center">Category-wise Expense</h3>
-                        <div class="chart">
-                            <div class="chart-bar">
-                                <div class="bar" style="height: 80%; background-color: var(--danger);">
-                                    <div class="bar-value"> ₹800</div>
-                                    <div class="bar-label">Food</div>
-                                </div>
-                                <div class="bar" style="height: 60%; background-color: var(--warning);">
-                                    <div class="bar-value"> ₹600</div>
-                                    <div class="bar-label">Utilities</div>
-                                </div>
-                                <div class="bar" style="height: 40%; background-color: var(--info);">
-                                    <div class="bar-value"> ₹400</div>
-                                    <div class="bar-label">Transport</div>
-                                </div>
-                                <div class="bar" style="height: 30%; background-color: var(--primary);">
-                                    <div class="bar-value"> ₹300</div>
-                                    <div class="bar-label">Entertainment</div>
-                                </div>
-                                <div class="bar" style="height: 20%; background-color: var(--secondary);">
-                                    <div class="bar-value"> ₹200</div>
-                                    <div class="bar-label">Shopping</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Reports</p>
+        <h1 class="page-title">Monthly report</h1>
+        <p class="page-sub"><%= periodLabel %> · a complete picture built only from your recorded transactions.</p>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+    <div class="page-actions">
+        <%- include('../partials/monthFilter') %>
+        <a class="btn btn-secondary" href="/transactions?month=<%= month %>&year=<%= year %>">
+            <%- include('../partials/icon', { name: 'receipt' }) %>
+            Open ledger
+        </a>
+    </div>
+</div>
+
+<div class="stat-grid" style="margin-bottom: 16px;">
+    <article class="stat is-income">
+        <div class="stat-top">
+            <span class="stat-label"><%= isGroupAccount ? 'Contributions' : 'Income' %></span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-up' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(incomeTotal) %></p>
+        <p class="stat-note"><%= incomeCount %> <%= incomeCount === 1 ? 'entry' : 'entries' %></p>
+    </article>
+
+    <article class="stat is-expense">
+        <div class="stat-top">
+            <span class="stat-label">Expenses</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-down' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(expenseTotal) %></p>
+        <p class="stat-note"><%= expenseCount %> <%= expenseCount === 1 ? 'entry' : 'entries' %></p>
+    </article>
+
+    <article class="stat is-violet">
+        <div class="stat-top">
+            <span class="stat-label">Balance</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'wallet' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(balance) %></p>
+        <p class="stat-note"><%= isGroupAccount ? 'Available for the mess' : 'Saved this month' %></p>
+    </article>
+
+    <% if (isGroupAccount) { %>
+        <article class="stat is-meal">
+            <div class="stat-top">
+                <span class="stat-label">Per meal price</span>
+                <span class="stat-icon"><%- include('../partials/icon', { name: 'meal' }) %></span>
+            </div>
+            <p class="stat-value"><%= money(perMealPrice) %></p>
+            <p class="stat-note"><%= grandTotalFood %> meals recorded</p>
+        </article>
+    <% } else { %>
+        <article class="stat is-teal">
+            <div class="stat-top">
+                <span class="stat-label">Expense ratio</span>
+                <span class="stat-icon"><%- include('../partials/icon', { name: 'pie' }) %></span>
+            </div>
+            <p class="stat-value"><%= expenseShare %>%</p>
+            <p class="stat-note">Of this month’s income</p>
+        </article>
+    <% } %>
+</div>
+
+<div class="split">
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2>Expense categories</h2>
+                <p>Where the money went · top <%= categoryBreakdown.length %></p>
+            </div>
+            <span class="badge badge-expense"><%= money(expenseTotal) %></span>
+        </div>
+        <div class="card-body">
+            <% if (!categoryBreakdown.length) { %>
+                <div class="empty-state" style="padding: 26px 10px;">
+                    <span class="empty-icon"><%- include('../partials/icon', { name: 'pie' }) %></span>
+                    <h3>No expenses yet</h3>
+                    <p>Category insights appear after expenses are recorded for this month.</p>
+                </div>
+            <% } else { %>
+                <div class="bars">
+                    <% categoryBreakdown.forEach(item => { %>
+                        <div class="bar-row">
+                            <span class="bar-name" title="<%= item.name %>"><%= item.name %></span>
+                            <span class="bar-track">
+                                <span class="bar-fill is-expense" style="width: <%= Math.max(2, item.share) %>%"></span>
+                            </span>
+                            <span class="bar-value"><%= money(item.amount) %></span>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } %>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2><%= isGroupAccount ? 'Top contributors' : 'Income sources' %></h2>
+                <p>Share of recorded income</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <% if (!contributors.length) { %>
+                <div class="empty-state" style="padding: 26px 10px;">
+                    <span class="empty-icon"><%- include('../partials/icon', { name: 'wallet' }) %></span>
+                    <h3>No income yet</h3>
+                    <p>Contributions and income sources will be ranked here.</p>
+                </div>
+            <% } else { %>
+                <div class="bars">
+                    <% contributors.forEach(item => { %>
+                        <div class="bar-row">
+                            <span class="bar-name" title="<%= item.name %>"><%= item.name %></span>
+                            <span class="bar-track">
+                                <span class="bar-fill is-green" style="width: <%= Math.max(2, Math.round((item.share / maxShare) * 100)) %>%"></span>
+                            </span>
+                            <span class="bar-value"><%= money(item.amount) %></span>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } %>
+        </div>
+    </section>
+</div>
+
+<section class="card">
+    <div class="card-head">
+        <div>
+            <h2>Daily spending</h2>
+            <p>Peak day: <%= money(peakDaily) %></p>
+        </div>
+        <span class="badge"><%= periodLabel %></span>
+    </div>
+    <div class="card-body">
+        <% if (peakDaily === 0) { %>
+            <div class="empty-state" style="padding: 26px 10px;">
+                <span class="empty-icon"><%- include('../partials/icon', { name: 'chart' }) %></span>
+                <h3>No spending recorded</h3>
+                <p>Add expenses to see the daily pattern for this month.</p>
+            </div>
+        <% } else { %>
+            <div class="day-chart" role="img" aria-label="Daily expense chart for <%= periodLabel %>">
+                <% dailyWithHeight.forEach(day => { %>
+                    <span class="day-col" title="<%= day.key %> · <%= money(day.amount) %>">
+                        <span style="height: <%= day.height %>%"></span>
+                    </span>
+                <% }) %>
+            </div>
+            <div class="day-chart-axis">
+                <span><%= new Date(year, month - 1, 1).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) %></span>
+                <span><%= new Date(year, month, 0).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) %></span>
+            </div>
+        <% } %>
+    </div>
+</section>
+
+<% if (isGroupAccount) { %>
+    <div class="grid-2 mt-2">
+        <section class="card">
+            <div class="card-head"><h2>Meal summary</h2></div>
+            <div class="card-body">
+                <dl class="detail-list">
+                    <div class="detail-row"><dt>Meals recorded</dt><dd><%= grandTotalFood %></dd></div>
+                    <div class="detail-row"><dt>Expenses</dt><dd><%= money(expenseTotal) %></dd></div>
+                    <div class="detail-row"><dt>Per meal price</dt><dd><%= money(perMealPrice) %></dd></div>
+                </dl>
+                <a class="btn btn-secondary btn-block mt-2" href="/meal-billing">Open meal billing</a>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-head"><h2>Next steps</h2></div>
+            <div class="card-body stack-sm">
+                <a class="btn btn-secondary btn-block" href="/final-settlement">Review final settlement</a>
+                <a class="btn btn-secondary btn-block" href="/AddedMeal">Check added meals</a>
+                <a class="btn btn-secondary btn-block" href="/year-history">Compare with past years</a>
+            </div>
+        </section>
+    </div>
+<% } %>
+
+<%- include('../partials/layout-bottom') %>

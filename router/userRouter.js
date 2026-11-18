@@ -3,91 +3,50 @@ const userRouter = express.Router();
 
 const userController = require('../controller/userController');
 const isAuth = require('../middleware/isAuth');
+const isMess = require('../middleware/isMess');
 
-userRouter.get('/',isAuth , userController.getIndex);
-// userRouter.get('/deshboard', userController.getdeshboard);
-userRouter.get('/add-entry',isAuth , userController.getAddEntry);
-userRouter.post('/add-entry', isAuth , userController.postAddEntry);
+/* Dashboard */
+userRouter.get('/', isAuth, userController.getIndex);
 
-userRouter.get('/add-expense', isAuth , userController.getAddExpense);
-userRouter.post('/add-expense', isAuth , userController.postAddExpense);
+/* Income / contribution entries */
+userRouter.get('/add-entry', isAuth, userController.getAddEntry);
+userRouter.post('/add-entry', isAuth, userController.postAddEntry);
 
-userRouter.get('/add-Meal',isAuth , userController.getAddMeal);
-userRouter.post('/add-Meal', isAuth , userController.postAddMeal);
+/* Expenses */
+userRouter.get('/add-expense', isAuth, userController.getAddExpense);
+userRouter.post('/add-expense', isAuth, userController.postAddExpense);
 
-// userRouter.get('/MoneyAdd/:memberId', userController.getNewMoneyAdd);
-// userRouter.post('/MoneyAdd', userController.postNewMoneyAdd);
+/* Meals — mess accounts only */
+userRouter.get('/add-Meal', isMess, userController.getAddMeal);
+userRouter.post('/add-Meal', isMess, userController.postAddMeal);
+userRouter.get('/AddedMeal', isMess, userController.getAddedMeal);
+userRouter.get('/meal-billing', isMess, userController.getMealBilling);
+userRouter.get('/final-settlement', isMess, userController.getFinalSettlement);
 
-userRouter.get('/setting', isAuth ,userController.getSetting)
-userRouter.get('/reports', userController.getReports);
-userRouter.get('/transactions', userController.getTransactions);
-userRouter.get('/moneyAdded', userController.getMoneyAdded);
-userRouter.get('/expentionAdded', userController.getExpenseAdded);
-userRouter.get('/AddedMeal', userController.getAddedMeal);
-userRouter.get('/meal-billing', userController.getMealBilling);
-userRouter.get('/final-settlement',  userController.getFinalSettlement);
-
-
-// deleted routes
-// userRouter.post('/delete-entry', isAuth , userController.postDeleteEntry);
-// userRouter.post('/delete-expense', isAuth , userController.postDeleteExpense);
-// userRouter.post('/delete-meal', isAuth , userController.postDeleteMeal);
-
+/* Account & reporting */
+userRouter.get('/setting', isAuth, userController.getSetting);
+userRouter.get('/reports', isAuth, userController.getReports);
+userRouter.get('/transactions', isAuth, userController.getTransactions);
+userRouter.get('/moneyAdded', isAuth, userController.getMoneyAdded);
+userRouter.get('/expentionAdded', isAuth, userController.getExpenseAdded);
 userRouter.get('/year-history', isAuth, userController.getYearHistory);
 userRouter.get('/year-history/:year', isAuth, userController.getYearDetails);
 
+/* Group cards / whole-day deletes */
+userRouter.post('/money-delete-group/:title', isAuth, userController.deleteMoneyGroup);
+userRouter.post('/expense-delete-date/:date', isAuth, userController.deleteExpenseByDate);
 
-userRouter.post(
-    '/money-delete-group/:title',
-    userController.deleteMoneyGroup
-);
+/* Single-record deletes */
+userRouter.post('/expense-delete-single/:id', isAuth, userController.deleteSingleExpense);
+userRouter.post('/money-delete-single/:id', isAuth, userController.deleteSingleMoney);
 
-userRouter.post(
-    '/expense-delete-date/:date',
-    userController.deleteExpenseByDate
-);
+/* Meal ledger deletes — mess accounts only, admin enforced in controller */
+userRouter.post('/meal-delete-user/:id', isMess, userController.deleteMealUser);
+userRouter.post('/meal-delete-single/:userId/:mealId', isMess, userController.deleteSingleMeal);
 
-userRouter.post(
-    '/meal-delete-user/:id',
-    userController.deleteMealUser
-);
-
-//singal delet
-
-userRouter.post(
-  '/expense-delete-single/:id',
-  isAuth,
-  userController.deleteSingleExpense
-);
-userRouter.post(
-  '/meal-delete-single/:userId/:mealId',
-  isAuth,
-  userController.deleteSingleMeal
-);
-
-userRouter.post(
-  '/money-delete-single/:id',
-  isAuth,
-  userController.deleteSingleMoney
-); 
-
-userRouter.get(
-  '/settings/members',
-  isAuth,
-  userController.getGroupMembers
-);
-
-userRouter.post(
-  '/settings/members/:id/make-admin',
-  isAuth,
-  userController.makeAdmin
-);
-
-userRouter.post(
-  '/settings/members/:id/remove',
-  isAuth,
-  userController.removeMember
-);
-
+/* Group members — mess accounts only, admin enforced in controller */
+userRouter.get('/settings/members', isMess, userController.getGroupMembers);
+userRouter.post('/settings/members/:id/make-admin', isMess, userController.makeAdmin);
+userRouter.post('/settings/members/:id/remove', isMess, userController.removeMember);
 
 module.exports = userRouter;

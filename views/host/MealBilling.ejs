@@ -1,64 +1,118 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Meal billing' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Dashboard</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %> 
-    <div id="app">
-        <%- include('../partials/header') %>
-        <!-- Main Content -->
-        <main class="main-content">
-            <h2>🥦 Billing Dashboard</h2>
-            <br>   
-            <%- include('../partials/monthFilter') %>      
-            <br>   
-
-            <h2>🍽️ Meal Billing Summary</h2>
-
-            <p><strong>Total Expense:</strong> ₹ <%= expenseTotal %></p>
-            <p><strong>Total Food Count:</strong> <%= grandTotalFood %></p>
-            <p><strong>Per Meal Price:</strong> ₹ <%= perMealPrice %></p>
-
-            <hr>
-            <div >
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Total Food</th>
-                                <th>Payable Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-
-                            <% billingUsers.forEach(user => { %>
-                                <tr>
-                                    <td><%= user.name %></td>
-                                    <td><%= user.userTotalFood %></td>
-                                    <td>₹ <%= user.payableAmount %></td>
-                                </tr>
-                            <% }) %>
-
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </main>
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Meals</p>
+        <h1 class="page-title">Meal billing</h1>
+        <p class="page-sub"><%= periodLabel %> · monthly expenses shared across recorded meal counts.</p>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+    <div class="page-actions">
+        <%- include('../partials/monthFilter') %>
+        <a class="btn btn-secondary" href="/final-settlement">
+            <%- include('../partials/icon', { name: 'shield' }) %>
+            Final settlement
+        </a>
+    </div>
+</div>
 
+<div class="stat-grid" style="margin-bottom: 16px;">
+    <article class="stat is-expense">
+        <div class="stat-top">
+            <span class="stat-label">Monthly expenses</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'receipt' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(expenseTotal) %></p>
+        <p class="stat-note">Shared across the mess</p>
+    </article>
 
+    <article class="stat is-meal">
+        <div class="stat-top">
+            <span class="stat-label">Total meals</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'meal' }) %></span>
+        </div>
+        <p class="stat-value"><%= Number(grandTotalFood || 0).toLocaleString('en-IN') %></p>
+        <p class="stat-note">For <%= periodLabel %></p>
+    </article>
 
+    <article class="stat is-violet">
+        <div class="stat-top">
+            <span class="stat-label">Per meal price</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'calculator' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(perMealPrice) %></p>
+        <p class="stat-note">Expenses ÷ meals</p>
+    </article>
+
+    <article class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Members billed</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'users' }) %></span>
+        </div>
+        <p class="stat-value"><%= billingUsers.length %></p>
+        <p class="stat-note">With at least one meal</p>
+    </article>
+</div>
+
+<section class="card">
+    <div class="card-head">
+        <div>
+            <h2>Member billing</h2>
+            <p>Payable = member meal count × per-meal price</p>
+        </div>
+        <span class="badge badge-info"><%= periodLabel %></span>
+    </div>
+
+    <% if (!billingUsers.length) { %>
+        <div class="empty-state">
+            <span class="empty-icon"><%- include('../partials/icon', { name: 'calculator' }) %></span>
+            <h3>Nothing to bill yet</h3>
+            <p>Add meal counts for this month. Billing appears as soon as meals and expenses exist.</p>
+            <a class="btn btn-primary btn-sm" href="/add-Meal">Add meal count</a>
+        </div>
+    <% } else { %>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th class="is-right">Meals</th>
+                        <th class="is-right">Payable</th>
+                        <th class="is-right">Share</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% billingUsers.forEach(user => { %>
+                        <tr>
+                            <td><strong><%= user.name %></strong></td>
+                            <td class="is-right"><%= user.userTotalFood %></td>
+                            <td class="is-right"><span class="table-amount"><%= money(user.payableAmount) %></span></td>
+                            <td class="is-right">
+                                <span class="badge">
+                                    <%= grandTotalFood > 0 ? ((user.userTotalFood / grandTotalFood) * 100).toFixed(1) : '0.0' %>%
+                                </span>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Total</td>
+                        <td class="is-right"><%= grandTotalFood %></td>
+                        <td class="is-right"><%= money(expenseTotal) %></td>
+                        <td class="is-right">100%</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    <% } %>
+</section>
+
+<div class="alert alert-info mt-2">
+    <%- include('../partials/icon', { name: 'info' }) %>
+    <span>Expenses are divided by total meals, not by members. A member who ate more pays proportionally more.</span>
+</div>
+
+<%- include('../partials/layout-bottom') %>

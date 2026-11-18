@@ -1,97 +1,118 @@
+<%
+    const selfId = String(currentUser.id || currentUser._id || '');
+    const isAdmin = currentUser.role === 'admin';
+    const roleBadge = (role) => role === 'admin' ? 'badge-violet' : 'badge-info';
+    const joined = (value) => value
+        ? new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+        : '—';
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Group members' }) %>
 
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Settings</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>   
-    <%- include('../partials/loader') %>  
-    <div id="app">
-        <%- include('../partials/header') %>    
-        <!-- Main Content -->
-        <main class="main-content">
-
-            <!-- Settings Page -->
-            <div id="settings-page" class="page">
-                <h2>Settings</h2>
-                <div class="card">
-                    
-                    <h2>👥 Group Members</h2>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Action</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                <% members.forEach(m => { %>
-                                <tr>
-                                    <td><%= m.name %></td>
-                                    <td><%= m.email %></td>
-                                    <td><%= m.role %></td>
-
-                                    <td>
-                                    <% if (currentUser.role === 'admin' && m._id.toString() !== currentUser.id) { %>
-
-                                        <!-- Action dropdown -->
-                                        <div class="action-menu">
-                                        <button class="menu-btn">⋮</button>
-
-                                        <div class="menu-dropdown">
-                                            <% if (m.role !== 'admin') { %>
-                                            <form action="/settings/members/<%= m._id %>/make-admin" method="POST">
-                                                <button type="submit">⭐ Make Admin</button>
-                                            </form>
-                                            <% } %>
-
-                                            <form action="/settings/members/<%= m._id %>/remove" method="POST">
-                                            <button type="submit" class="danger">🚫 Remove</button>
-                                            </form>
-                                        </div>
-                                        </div>
-
-                                    <% } else { %>
-                                        —
-                                    <% } %>
-                                    </td>
-                                </tr>
-                                <% }) %>
-                            </tbody>
-                        </table>
-                    </div>
-
-                        
-                </div>
-                 <!-- Logout Section -->
-                <div class="card" style="margin-top: 2rem;">
-                    <h3>Account</h3>
-
-                    <form action="/logout" method="GET">
-                        <button type="submit" class="btn btn-danger" style="width:100%;">
-                            Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </main>
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Account</p>
+        <h1 class="page-title">Group members</h1>
+        <p class="page-sub">Everyone sharing this mess ledger. <%= adminCount %> of <%= members.length %> <%= members.length === 1 ? 'member is' : 'members are' %> admin<%= adminCount === 1 ? '' : 's' %>.</p>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+    <div class="page-actions">
+        <a class="btn btn-secondary" href="/setting">
+            <%- include('../partials/icon', { name: 'settings' }) %>
+            Settings
+        </a>
+    </div>
+</div>
 
+<div class="grid-3" style="margin-bottom: 16px;">
+    <article class="stat is-violet">
+        <div class="stat-top">
+            <span class="stat-label">Members</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'users' }) %></span>
+        </div>
+        <p class="stat-value"><%= members.length %></p>
+        <p class="stat-note">Verified accounts in this mess</p>
+    </article>
 
+    <article class="stat is-teal">
+        <div class="stat-top">
+            <span class="stat-label">Admins</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'shield' }) %></span>
+        </div>
+        <p class="stat-value"><%= adminCount %></p>
+        <p class="stat-note">Can manage members and meal records</p>
+    </article>
 
+    <article class="stat is-income">
+        <div class="stat-top">
+            <span class="stat-label">Group ID</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'id-card' }) %></span>
+        </div>
+        <p class="stat-value" style="font-size: 1.35rem; letter-spacing: 0.06em;"><%= currentUser.groupId %></p>
+        <p class="stat-note">Share it so others can join</p>
+    </article>
+</div>
+
+<section class="card">
+    <div class="card-head">
+        <div>
+            <h2>Member list</h2>
+            <p><%= isAdmin ? 'Promote members or remove their login. Financial history is kept.' : 'Only mess admins can change member roles.' %></p>
+        </div>
+        <span class="badge"><%= members.length %> total</span>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Member</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th class="is-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% members.forEach(m => { %>
+                    <% const isSelf = String(m._id) === selfId; %>
+                    <tr>
+                        <td>
+                            <strong><%= m.name %><%= isSelf ? ' (you)' : '' %></strong>
+                            <span class="table-sub"><%= m.email %></span>
+                        </td>
+                        <td>
+                            <span class="badge <%= roleBadge(m.role) %>"><%= m.role %></span>
+                        </td>
+                        <td><%= joined(m.createdAt) %></td>
+                        <td class="is-right">
+                            <% if (!isAdmin || isSelf) { %>
+                                <span class="muted small">—</span>
+                            <% } else { %>
+                                <div class="table-actions">
+                                    <% if (m.role !== 'admin') { %>
+                                        <form action="/settings/members/<%= m._id %>/make-admin" method="POST" style="display:inline;">
+                                            <button class="btn btn-secondary btn-sm" type="submit">Make admin</button>
+                                        </form>
+                                    <% } %>
+                                    <form action="/settings/members/<%= m._id %>/remove" method="POST" style="display:inline;"
+                                          data-confirm="Remove <%= m.name %> from this mess? Their financial history will be kept."
+                                          data-confirm-label="Remove member">
+                                        <button class="btn btn-danger btn-sm" type="submit">Remove</button>
+                                    </form>
+                                </div>
+                            <% } %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="alert alert-info mt-2">
+    <%- include('../partials/icon', { name: 'info' }) %>
+    <div>
+        <strong>Joining this mess</strong>
+        <p>New members choose “Join existing mess” during registration and enter Group ID <strong><%= currentUser.groupId %>.</strong></p>
+    </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

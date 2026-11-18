@@ -1,0 +1,42 @@
+<%
+    const navAccount = locals.account || { isMess: false };
+%>
+        </main>
+    </div>
+</div>
+
+<nav class="bottom-nav" aria-label="Quick navigation">
+    <div class="bottom-nav-inner">
+        <a class="bottom-nav-item <%= currentPath === '/' ? 'is-active' : '' %>" href="/">
+            <%- include('icon', { name: 'home' }) %>
+            <span>Home</span>
+        </a>
+        <a class="bottom-nav-item <%= currentPath === '/expentionAdded' ? 'is-active' : '' %>" href="/expentionAdded">
+            <%- include('icon', { name: 'list' }) %>
+            <span>Expenses</span>
+        </a>
+        <a class="bottom-nav-item bottom-nav-add" href="/add-entry" aria-label="<% if (navAccount.isMess) { %>Add money<% } else { %>Add income<% } %>">
+            <span class="bottom-nav-add-icon"><%- include('icon', { name: 'plus' }) %></span>
+            <span>Add</span>
+        </a>
+        <% if (navAccount.isMess) { %>
+            <a class="bottom-nav-item <%= currentPath === '/AddedMeal' ? 'is-active' : '' %>" href="/AddedMeal">
+                <%- include('icon', { name: 'meal' }) %>
+                <span>Meals</span>
+            </a>
+        <% } else { %>
+            <a class="bottom-nav-item <%= currentPath === '/reports' ? 'is-active' : '' %>" href="/reports">
+                <%- include('icon', { name: 'chart' }) %>
+                <span>Reports</span>
+            </a>
+        <% } %>
+        <a class="bottom-nav-item <%= currentPath === '/setting' ? 'is-active' : '' %>" href="/setting">
+            <%- include('icon', { name: 'settings' }) %>
+            <span>Settings</span>
+        </a>
+    </div>
+</nav>
+
+<%- include('pwa') %>
+</body>
+</html>

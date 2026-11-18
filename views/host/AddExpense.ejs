@@ -1,93 +1,120 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const rows = (form && Array.isArray(form.entries) && form.entries.length) ? form.entries : [{ name: '', rawAmount: '' }];
+    const dateValue = (form && form.entry_date) ? form.entry_date : entryDate;
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Add expense' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Entry</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %> 
-    <div id="app">
-        <%- include('../partials/header') %>
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Add Entry Page -->
-            <div id="add-entry-page" class="page">
-                <h2>Add Expense</h2>
-                <div class="card">
-                    <form id="add-entry-form" action="/add-expense" method="POST">
-                                                    
-                        <div class="dashboard-actions">
-                            <a href="/add-entry" class="action-btn income-btn">
-                                ➕ Add Member
-                            </a>
-                            <a href="/add-expense" class="action-btn expense-btn">
-                                ➖ Add Expense
-                            </a>
-                            <a href="/add-Meal" class="action-btn income-btn">
-                                ➕ Add Meal
-                            </a>
-                        </div>
-                       
-
-                        <div class="main-form">
-                            <div class="form-group">
-                                <label for="entry_date">Date</label>
-                                <input type="date" class="entry_date" id="entry_date" name="entry_date" required>
-                            </div>
-                            <div id="itemsContainer">
-                                <div class="item-row">
-                                    <div class="form-group">
-                                        <label for="entry_title">Item Name</label>
-                                        <input type="text" class="entry_title" id="vag_name" name="vag_name[]" placeholder="Vag" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="entry_amount">Amount</label>
-                                        <input type="number" class="entry_amount" id="entry_amount" name="entry_amount[]" placeholder="Enter amount" required>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" onclick="addMoreItem()" class="btn btn-success">+ Add More</button>
-                        <br>
-                        <hr>
-                        
-                        <div class="d-flex" style="gap: 1rem;">
-                            <button type="reset" class="btn btn-outline">Reset</button>
-                            <button type="submit" class="btn btn-success">Save Entry</button>
-                            
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </main>
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Expenses</p>
+        <h1 class="page-title">Record expenses</h1>
+        <p class="page-sub">Add one or several items bought on the same date. Each item is stored as its own record.</p>
     </div>
-    <script>
-        function addMoreItem() {
-            const container = document.getElementById('itemsContainer');
-            const div = document.createElement("div");
-            div.className = 'item-row' ;
-            div.innerHTML =
-            `
-            <div class="form-group">
-                <label for="entry_title">Item Name</label>
-                <input type="text" class="entry_title" id="vag_name" name="vag_name[]" placeholder="Vag" required>
+    <div class="page-actions">
+        <a class="btn btn-secondary" href="/expentionAdded">
+            <%- include('../partials/icon', { name: 'list' }) %>
+            Expense list
+        </a>
+    </div>
+</div>
+
+<div class="split">
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2>Expense details</h2>
+                <p>Every row is saved with the same date.</p>
             </div>
-            <div class="form-group">
-                <label for="entry_amount">Amount</label>
-                <input type="number" class="entry_amount" id="entry_amount" name="entry_amount[]" placeholder="Enter amount" required>
-            </div>
-            <button type="button" onclick="this.parentElement.remove()" class="btn btn-success"> <h1>X</h1></button>
-            `;
-            container.appendChild(div)
-        }
-    </script>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+        </div>
+        <div class="card-body">
+            <% if (locals.error) { %>
+                <div class="alert alert-error" role="alert" style="margin-bottom: 15px;">
+                    <%- include('../partials/icon', { name: 'alert' }) %>
+                    <span><%= error %></span>
+                </div>
+            <% } %>
+
+            <form class="form" action="/add-expense" method="POST" data-expense-form>
+                <div class="field">
+                    <label class="label" for="expense-date">Date</label>
+                    <input class="input" id="expense-date" type="date" name="entry_date"
+                           value="<%= dateValue %>" required>
+                </div>
+
+                <div class="field">
+                    <span class="label">
+                        Items
+                        <span>Title and amount per row</span>
+                    </span>
+
+                    <div class="expense-rows" data-expense-rows>
+                        <% rows.forEach(row => { %>
+                            <div class="expense-row">
+                                <input class="input" type="text" name="vag_name"
+                                       value="<%= row.name || '' %>" placeholder="Item, e.g. Vegetables"
+                                       maxlength="80" required>
+                                <input class="input expense-amount" type="number" name="entry_amount"
+                                       value="<%= row.rawAmount !== undefined ? row.rawAmount : '' %>"
+                                       placeholder="0.00" min="0.01" step="0.01" inputmode="decimal" required>
+                                <button class="icon-btn" type="button" data-remove-row aria-label="Remove this item">
+                                    <%- include('../partials/icon', { name: 'trash' }) %>
+                                </button>
+                            </div>
+                        <% }) %>
+                    </div>
+
+                    <button class="btn btn-secondary btn-sm" type="button" data-add-row>
+                        <%- include('../partials/icon', { name: 'plus' }) %>
+                        Add another item
+                    </button>
+                </div>
+
+                <div class="row-total">
+                    <span>Total for this date</span>
+                    <strong data-expense-total>₹0.00</strong>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">
+                        <%- include('../partials/icon', { name: 'check' }) %>
+                        Save expenses
+                    </button>
+                    <a class="btn btn-ghost" href="/">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>Good to know</h2>
+        </div>
+        <div class="card-body">
+            <ul class="list" style="margin: -8px -20px -20px;">
+                <li class="list-item">
+                    <span class="list-indicator is-expense"><%- include('../partials/icon', { name: 'receipt' }) %></span>
+                    <div class="list-copy">
+                        <strong>One row, one record</strong>
+                        <span>Items stay individually deletable later</span>
+                    </div>
+                </li>
+                <li class="list-item">
+                    <span class="list-indicator"><%- include('../partials/icon', { name: 'shield' }) %></span>
+                    <div class="list-copy">
+                        <strong>Account scoped</strong>
+                        <span><%= account.isMess ? 'Group ID: ' + account.groupId : 'Visible only to you' %></span>
+                    </div>
+                </li>
+                <li class="list-item">
+                    <span class="list-indicator is-meal"><%- include('../partials/icon', { name: 'calculator' }) %></span>
+                    <div class="list-copy">
+                        <strong>Feeds meal pricing</strong>
+                        <span>Monthly expenses set the per-meal price</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </section>
+</div>
+
+<%- include('../partials/layout-bottom') %>

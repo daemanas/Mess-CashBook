@@ -1,63 +1,124 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const activeMonths = months.filter(m => m.count > 0);
+    const busiest = months.reduce((best, m) => (m.expense > (best ? best.expense : 0) ? m : best), null);
+%>
+<%- include('../partials/layout-top', { pageTitle: year + ' summary' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Transactions</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %>  
-    <div id="app">
-        <%- include('../partials/header') %>    
-        <!-- Main Content -->
-        
-
-
-        <main class="main-content">
-                <div class="page-header">
-                    <h2>📅 <%= year %> Monthly Summary</h2>
-                    <p class="subtitle">Track your performance month by month</p>
-                </div>
-
-                <div class="monthly-grid">
-                    <% months.forEach(m => { %>
-                        <div class="month-card">
-                            <div class="month-name">
-                                <span><%= m.monthName %></span>
-                                <a href="/?month=<%= m.month %>&year=<%= year %>" class="icon-btn">
-                                    <span>View Details</span> →
-                                </a>
-                            </div>
-
-                            <div class="stats-row">
-                                <div class="stat-box income">
-                                    <label>Income</label>
-                                    <p>₹ <%= m.income %></p>
-                                </div>
-                                <div class="stat-box expense">
-                                    <label>Expense</label>
-                                    <p>₹ <%= m.expense %></p>
-                                </div>
-                            </div>
-
-                            <div class="balance-footer">
-                                <span class="footer-label">Remaining Balance</span>
-                                <span class="footer-value <%= m.balance >= 0 ? 'pos' : 'neg' %>">
-                                    ₹ <%= m.balance %>
-                                </span>
-                            </div>
-                        </div>
-                    <% }) %>
-                </div>
-            </main>
-
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Year history</p>
+        <h1 class="page-title"><%= year %> monthly summary</h1>
+        <p class="page-sub">Month-by-month income and expenses for <%= year %>.</p>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+    <div class="page-actions">
+        <a class="btn btn-secondary" href="/year-history">
+            <%- include('../partials/icon', { name: 'calendar' }) %>
+            All years
+        </a>
+        <a class="btn btn-secondary" href="/reports?year=<%= year %>&month=<%= currentMonth || 1 %>">
+            <%- include('../partials/icon', { name: 'chart' }) %>
+            Reports
+        </a>
+    </div>
+</div>
+
+<div class="stat-grid" style="margin-bottom: 16px;">
+    <article class="stat is-income">
+        <div class="stat-top">
+            <span class="stat-label">Income in <%= year %></span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-up' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(totalIncome) %></p>
+        <p class="stat-note"><%= activeMonths.length %> <%= activeMonths.length === 1 ? 'month' : 'months' %> with activity</p>
+    </article>
+
+    <article class="stat is-expense">
+        <div class="stat-top">
+            <span class="stat-label">Expenses in <%= year %></span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-down' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(totalExpense) %></p>
+        <p class="stat-note"><%= busiest && busiest.expense ? 'Highest: ' + busiest.monthName : 'No spending yet' %></p>
+    </article>
+
+    <article class="stat is-violet">
+        <div class="stat-top">
+            <span class="stat-label">Net balance</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'wallet' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(balance) %></p>
+        <p class="stat-note">Income minus expenses</p>
+    </article>
+
+    <article class="stat is-teal">
+        <div class="stat-top">
+            <span class="stat-label">Records</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'list' }) %></span>
+        </div>
+        <p class="stat-value"><%= months.reduce((sum, m) => sum + m.count, 0) %></p>
+        <p class="stat-note">Entries recorded in <%= year %></p>
+    </article>
+</div>
+
+<section class="card">
+    <div class="card-head">
+        <div>
+            <h2>January – December</h2>
+            <p>Open a month to view its full ledger.</p>
+        </div>
+        <span class="badge"><%= year %></span>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th class="is-right">Income</th>
+                    <th class="is-right">Expenses</th>
+                    <th class="is-right">Net</th>
+                    <th class="is-center">Records</th>
+                    <th class="is-right">Open</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% months.forEach(m => { %>
+                    <tr>
+                        <td>
+                            <strong><%= m.monthName %></strong>
+                            <% if (m.month === currentMonth) { %>
+                                <span class="badge badge-info" style="margin-left: 8px;">This month</span>
+                            <% } %>
+                        </td>
+                        <td class="is-right">
+                            <span class="table-amount <%= m.income ? 'is-income' : '' %>"><%= money(m.income) %></span>
+                        </td>
+                        <td class="is-right">
+                            <span class="table-amount <%= m.expense ? 'is-expense' : '' %>"><%= money(m.expense) %></span>
+                        </td>
+                        <td class="is-right">
+                            <span class="table-amount"><%= money(m.balance) %></span>
+                        </td>
+                        <td class="is-center"><%= m.count %></td>
+                        <td class="is-right">
+                            <a class="btn btn-secondary btn-sm" href="/?month=<%= m.month %>&year=<%= year %>">View</a>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><%= year %> total</td>
+                    <td class="is-right"><%= money(totalIncome) %></td>
+                    <td class="is-right"><%= money(totalExpense) %></td>
+                    <td class="is-right"><%= money(balance) %></td>
+                    <td class="is-center"><%= months.reduce((sum, m) => sum + m.count, 0) %></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</section>
+
+<%- include('../partials/layout-bottom') %>

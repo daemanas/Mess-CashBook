@@ -1,124 +1,141 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const isAdmin = account.isAdmin;
+    const memberCount = users.length;
+    const average = memberCount > 0 ? grandTotalFood / memberCount : 0;
+    const mealEntries = users.reduce((sum, user) => sum + user.meals.length, 0);
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Added meals' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Dashboard</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %> 
-    <div id="app">
-        <%- include('../partials/header') %>
-        <!-- Main Content -->
-        <main class="main-content">
-            <h2>🍽️ Meal Dashboard</h2>
-            <br>   
-            <%- include('../partials/monthFilter') %>      
-            <br>   
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Meals</p>
+        <h1 class="page-title">Added meals</h1>
+        <p class="page-sub"><%= periodLabel %> · each member’s daily food count for the selected month.</p>
+    </div>
+    <div class="page-actions">
+        <%- include('../partials/monthFilter') %>
+        <a class="btn btn-primary" href="/add-Meal">
+            <%- include('../partials/icon', { name: 'plus' }) %>
+            Add meal
+        </a>
+    </div>
+</div>
 
-            <% if (users.length > 0) { %>
+<div class="stat-grid" style="margin-bottom: 16px;">
+    <article class="stat is-meal">
+        <div class="stat-top">
+            <span class="stat-label">Total meals</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'meal' }) %></span>
+        </div>
+        <p class="stat-value"><%= Number(grandTotalFood || 0).toLocaleString('en-IN') %></p>
+        <p class="stat-note"><%= periodLabel %></p>
+    </article>
 
-                <% users.forEach(user => { %>
-                    <div class="data_containner">
+    <article class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Members with meals</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'users' }) %></span>
+        </div>
+        <p class="stat-value"><%= memberCount %></p>
+        <p class="stat-note"><%= mealEntries %> daily records</p>
+    </article>
 
-                        <h2>👤 <%= user.name %></h2>
+    <article class="stat is-teal">
+        <div class="stat-top">
+            <span class="stat-label">Average per member</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'chart' }) %></span>
+        </div>
+        <p class="stat-value"><%= average.toFixed(2) %></p>
+        <p class="stat-note">Meals in this month</p>
+    </article>
 
-                        <div class="card">
-                            <div class="table-container">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Food Count</th>
-                                            <th>AC</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% user.meals.forEach(m => { %>
-                                            <tr>
-                                                <td><%= new Date(m.date).toLocaleDateString('en-IN') %></td>
-                                                <td><%= m.food_count %></td>
-                                                <td>
-                                                    <!-- 🔵 3 DOT MENU -->
-                                                    <div class="dropdown" style="display:inline-block; float:right;">
-                                                        <button class="dot-btn">⋮</button>
+    <article class="stat is-violet">
+        <div class="stat-top">
+            <span class="stat-label">Group</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'id-card' }) %></span>
+        </div>
+        <p class="stat-value" style="font-size: 1.15rem;"><%= account.groupId || '—' %></p>
+        <p class="stat-note"><%= account.messName || 'Mess account' %></p>
+    </article>
+</div>
 
-                                                        <div class="dropdown-menu">
-                                                            <form action="/meal-delete-single/<%= user._id %>/<%= m._id %>"
-                                                                method="POST">
-                                                                <button type="submit"
-                                                                        class="delete-btn"
-                                                                        onclick="return confirm('এই দিনের Meal ডিলিট করবেন?')">
-                                                                    Delete
-                                                                </button>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <% }) %>
-
-                                        <!-- 🔹 User Total -->
-                                        <tr class="total-row">
-                                            <td><strong>Total (<%= user.name %>)</strong></td>
-                                            <td><strong><%= user.userTotal %></strong></td>
-                                            <td></td>
-                                        </tr>
-
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+<% if (!users.length) { %>
+    <section class="card">
+        <div class="empty-state">
+            <span class="empty-icon"><%- include('../partials/icon', { name: 'meal' }) %></span>
+            <h3>No meals in <%= periodLabel %></h3>
+            <p>Add today’s meal counts to start calculating the per-meal price for settlement.</p>
+            <a class="btn btn-primary btn-sm" href="/add-Meal">
+                <%- include('../partials/icon', { name: 'plus' }) %>
+                Add a meal count
+            </a>
+        </div>
+    </section>
+<% } else { %>
+    <div class="stack">
+        <% users.forEach(user => { %>
+            <section class="card">
+                <div class="card-head">
+                    <div>
+                        <h2><%= user.name %></h2>
+                        <p><%= user.meals.length %> <%= user.meals.length === 1 ? 'day' : 'days' %> · <%= user.userTotal %> meals</p>
                     </div>
-
-                    <a href="/add-Meal?name=<%= encodeURIComponent(user.name) %>" class="btn">
-                        Meal Add
-                    </a>
-
-                    <form action="/meal-delete-user/<%= user._id %>" 
-                        method="POST" 
-                        style="margin-top:10px; display:inline;">
-
-                        <button class="btn btn-danger btn-sm"
-                            onclick="return confirm('এই ইউজারের সব Meal ডিলিট করতে চান?')">
-                            Delete Full Card
-                        </button>
-
-                    </form>
-
-
-                <% }) %>
-
-                <!-- 🔥 GRAND TOTAL FOOD COUNT -->
-                <div class="data_containner">
-                    <div class="card">
-                        <div class="table-container">
-                            <table >
-                                <tr class="total-row">
-                                    <td><strong>🍽️ Grand Total Food</strong></td>
-                                    <td><strong><%= grandTotalFood %></strong></td>
-                                </tr>
-                            </table>
-                        </div>
+                    <div class="page-actions">
+                        <span class="badge badge-warning"><%= user.userTotal %> meals</span>
+                        <% if (isAdmin) { %>
+                            <form action="/meal-delete-user/<%= user._id %>" method="POST"
+                                  data-confirm="Delete the entire meal ledger for <%= user.name %>? Recorded counts cannot be restored."
+                                  data-confirm-label="Delete ledger">
+                                <button class="btn btn-danger btn-sm" type="submit">
+                                    <%- include('../partials/icon', { name: 'trash' }) %>
+                                    Delete ledger
+                                </button>
+                            </form>
+                        <% } %>
                     </div>
                 </div>
 
-            <% } else { %>
-                <p>No meal data found</p>
-            <% } %>
-
-
-        </main>
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th class="is-right">Food count</th>
+                                <% if (isAdmin) { %><th class="is-right">Action</th><% } %>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% user.meals.forEach(meal => { %>
+                                <tr>
+                                    <td><%= new Date(meal.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) %></td>
+                                    <td class="is-right"><span class="table-amount"><%= meal.food_count %></span></td>
+                                    <% if (isAdmin) { %>
+                                        <td class="is-right">
+                                            <div class="table-actions">
+                                                <form action="/meal-delete-single/<%= user._id %>/<%= meal._id %>" method="POST"
+                                                      data-confirm="Delete <%= user.name %>’s meal count for this date?">
+                                                    <button class="btn btn-danger btn-sm" type="submit" aria-label="Delete meal">
+                                                        <%- include('../partials/icon', { name: 'trash' }) %>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    <% } %>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Member total</td>
+                                <td class="is-right"><%= user.userTotal %></td>
+                                <% if (isAdmin) { %><td></td><% } %>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+        <% }) %>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+<% } %>
 
-
-
+<%- include('../partials/layout-bottom') %>

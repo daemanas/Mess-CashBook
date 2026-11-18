@@ -1,60 +1,129 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const activeYears = years.filter(y => y.income || y.expense).length;
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Year history' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Transactions</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %>  
-    <div id="app">
-        <%- include('../partials/header') %>    
-        <!-- Main Content -->
-        <main class="main-content">
-            <h2>📆 Yearly History</h2>
-
-            <% if (years.length === 0) { %>
-                <p>No data found</p>
-            <% } %>
-
-            
-             <% years.forEach(y => { %>
-                <div class="card yearly-card">
-                    <div class="card-header">
-                        <h3><%= y.year %></h3>
-                        <span class="badge">Yearly Summary</span>
-                    </div>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <span class="label">Income</span>
-                            <span class="value income-text">₹ <%= y.income %></span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="label">Expense</span>
-                            <span class="value expense-text">₹ <%= y.expense %></span>
-                        </div>
-                    </div>
-
-                    <div class="balance-row">
-                        <div class="balance-info">
-                            <span class="label">Net Balance</span>
-                            <span class="balance-amount">₹ <%= y.balance %></span>
-                        </div>
-                        <a href="/year-history/<%= y.year %>" class="btn-glass">
-                            View Details
-                        </a>
-                    </div>
-                </div>
-            <% }) %>
-        </main>
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Archive</p>
+        <h1 class="page-title">Year history</h1>
+        <p class="page-sub">Every year you have recorded activity, with totals taken straight from your ledger.</p>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+    <div class="page-actions">
+        <a class="btn btn-secondary" href="/reports">
+            <%- include('../partials/icon', { name: 'chart' }) %>
+            Reports
+        </a>
+        <a class="btn btn-secondary" href="/transactions">
+            <%- include('../partials/icon', { name: 'receipt' }) %>
+            Transactions
+        </a>
+    </div>
+</div>
+
+<div class="stat-grid" style="margin-bottom: 16px;">
+    <article class="stat is-income">
+        <div class="stat-top">
+            <span class="stat-label">Total income</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-up' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(totalIncome) %></p>
+        <p class="stat-note">Across all recorded years</p>
+    </article>
+
+    <article class="stat is-expense">
+        <div class="stat-top">
+            <span class="stat-label">Total expenses</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-down' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(totalExpense) %></p>
+        <p class="stat-note">Across all recorded years</p>
+    </article>
+
+    <article class="stat is-violet">
+        <div class="stat-top">
+            <span class="stat-label">Net balance</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'wallet' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(balance) %></p>
+        <p class="stat-note">Income minus expenses</p>
+    </article>
+
+    <article class="stat is-teal">
+        <div class="stat-top">
+            <span class="stat-label">Years tracked</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'calendar' }) %></span>
+        </div>
+        <p class="stat-value"><%= activeYears %></p>
+        <p class="stat-note"><%= activeYears === 1 ? 'year with activity' : 'years with activity' %></p>
+    </article>
+</div>
+
+<section class="card">
+    <div class="card-head">
+        <div>
+            <h2>Yearly totals</h2>
+            <p>Open any year for a month-by-month breakdown.</p>
+        </div>
+        <span class="badge"><%= years.length %> <%= years.length === 1 ? 'year' : 'years' %></span>
+    </div>
+
+    <% if (!years.length) { %>
+        <div class="empty-state">
+            <span class="empty-icon"><%- include('../partials/icon', { name: 'calendar' }) %></span>
+            <h3>No history yet</h3>
+            <p>Record income or an expense and your yearly summary will appear here.</p>
+            <a class="btn btn-primary btn-sm" href="/add-entry">Add your first record</a>
+        </div>
+    <% } else { %>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th class="is-right">Income</th>
+                        <th class="is-right">Expenses</th>
+                        <th class="is-right">Net balance</th>
+                        <th class="is-right">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% years.forEach(y => { %>
+                        <tr>
+                            <td>
+                                <strong><%= y.year %></strong>
+                                <% if (y.year === currentYear) { %>
+                                    <span class="badge badge-info" style="margin-left: 8px;">Current</span>
+                                <% } %>
+                            </td>
+                            <td class="is-right">
+                                <span class="table-amount is-income"><%= money(y.income) %></span>
+                            </td>
+                            <td class="is-right">
+                                <span class="table-amount is-expense"><%= money(y.expense) %></span>
+                            </td>
+                            <td class="is-right">
+                                <span class="table-amount"><%= money(y.balance) %></span>
+                            </td>
+                            <td class="is-right">
+                                <a class="btn btn-secondary btn-sm" href="/year-history/<%= y.year %>">View months</a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>All years</td>
+                        <td class="is-right"><%= money(totalIncome) %></td>
+                        <td class="is-right"><%= money(totalExpense) %></td>
+                        <td class="is-right"><%= money(balance) %></td>
+                        <td class="is-right"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    <% } %>
+</section>
+
+<%- include('../partials/layout-bottom') %>

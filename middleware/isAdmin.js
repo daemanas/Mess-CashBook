@@ -1,6 +1,15 @@
+const isAuth = require('./isAuth');
+
 module.exports = (req, res, next) => {
-    if (req.session.user.role !== 'admin') {
-        return res.status(403).send('Permission denied');
-    }
-    next();
+    isAuth(req, res, () => {
+        const user = req.session.user;
+        if (user.role !== 'admin' || !user.groupId) {
+            return res.status(403).render('host/error', {
+                status: 403,
+                message: 'Administrator access required',
+                hint: 'This page is only available to the mess administrator.'
+            });
+        }
+        next();
+    });
 };

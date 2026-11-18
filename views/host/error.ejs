@@ -1,23 +1,37 @@
+<%
+    const code = typeof status !== 'undefined' ? status : 500;
+    const heading = typeof title !== 'undefined' && title ? title : (code === 404 ? 'Page not found' : code === 403 ? 'Access denied' : 'Something went wrong');
+    const detail = typeof message !== 'undefined' && message ? message : 'The page could not be loaded.';
+    const loggedIn = Boolean(locals.account && locals.account.isLoggedIn);
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || 404</title>
+    <meta name="theme-color" content="#0b1730">
+    <title><%= heading %> · CashBook</title>
     <link rel="stylesheet" href="/style.css">
 </head>
-<body>
-    <div id="app">
-        <main class="main-content"> 
-            <h2><%= message %></h2>
-            <a href="/">Go Home</a>
-        </main>
-    </div>
-<%- include('../partials/pwa') %>
+<body class="error-body">
+    <main class="error-card">
+        <span class="error-code"><%= code %></span>
+        <h1><%= heading %></h1>
+        <p><%= detail %></p>
+        <% if (typeof hint !== 'undefined' && hint) { %>
+            <p><%= hint %></p>
+        <% } %>
+
+        <div class="error-actions">
+            <a class="btn btn-primary" href="<%= loggedIn ? '/' : '/login' %>">
+                <%= loggedIn ? 'Back to dashboard' : 'Go to sign in' %>
+            </a>
+            <% if (loggedIn) { %>
+                <a class="btn btn-secondary" href="/transactions">Open ledger</a>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('../partials/pwa') %>
 </body>
 </html>

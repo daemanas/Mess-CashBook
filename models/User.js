@@ -26,6 +26,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    // Additive and optional: existing accounts simply have no mess name.
+    messName: {
+        type: String,
+        default: null,
+        trim: true
+    },
     isVerified: {
         type: Boolean,
         default: false

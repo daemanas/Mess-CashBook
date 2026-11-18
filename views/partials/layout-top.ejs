@@ -1,0 +1,141 @@
+<%
+    const acct = locals.account || { isMess: false, isPersonal: true, isAdmin: false };
+    const pageName = typeof pageTitle !== 'undefined' ? pageTitle : 'Dashboard';
+    const displayName = (locals.user && locals.user.name) ? locals.user.name : 'Your account';
+    const accountName = acct.messName || displayName;
+    const accountLabel = acct.isMess
+        ? (acct.isAdmin ? 'Mess admin' : 'Mess member')
+        : 'Personal account';
+    const initial = displayName.trim().charAt(0).toUpperCase() || 'C';
+    const isActive = (path) => path === '/'
+        ? currentPath === '/'
+        : currentPath === path || currentPath.startsWith(path + '/');
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#080d12">
+    <meta name="color-scheme" content="dark">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="CashBook — simple, clear accounting for messes and personal finances.">
+    <title><%= pageName %> · CashBook</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <aside class="sidebar" id="app-sidebar" aria-label="Main navigation">
+        <a class="sidebar-brand" href="/">
+            <span class="brand-mark"><%- include('icon', { name: 'book' }) %></span>
+            <span class="brand-copy">
+                <strong>Cash<span>Book</span></strong>
+                <small><%= acct.isMess ? 'Mess accounting' : 'Personal finance' %></small>
+            </span>
+        </a>
+
+        <div class="sidebar-account">
+            <span><%= acct.isMess ? 'Mess account' : 'Personal account' %></span>
+            <strong><%= accountName %></strong>
+            <em><%= acct.isMess ? (acct.isAdmin ? 'ADMIN' : 'MEMBER') : 'PERSONAL' %></em>
+        </div>
+
+        <nav class="nav-group" aria-label="Overview">
+            <p class="nav-group-title">Overview</p>
+            <a class="nav-link <%= isActive('/') ? 'is-active' : '' %>" href="/">
+                <%- include('icon', { name: 'home' }) %> Dashboard
+            </a>
+            <a class="nav-link <%= isActive('/transactions') ? 'is-active' : '' %>" href="/transactions">
+                <%- include('icon', { name: 'receipt' }) %> Transactions
+            </a>
+            <a class="nav-link <%= isActive('/reports') ? 'is-active' : '' %>" href="/reports">
+                <%- include('icon', { name: 'chart' }) %> Reports
+            </a>
+            <a class="nav-link <%= isActive('/year-history') ? 'is-active' : '' %>" href="/year-history">
+                <%- include('icon', { name: 'calendar' }) %> Year history
+            </a>
+        </nav>
+
+        <nav class="nav-group" aria-label="Money">
+            <p class="nav-group-title">Money</p>
+            <a class="nav-link <%= isActive('/moneyAdded') ? 'is-active' : '' %>" href="/moneyAdded">
+                <%- include('icon', { name: 'wallet' }) %> <%= acct.isMess ? 'Money added' : 'Income' %>
+            </a>
+            <a class="nav-link <%= isActive('/add-entry') ? 'is-active' : '' %>" href="/add-entry">
+                <%- include('icon', { name: 'plus' }) %> <%= acct.isMess ? 'Add money' : 'Add income' %>
+            </a>
+            <a class="nav-link <%= isActive('/expentionAdded') ? 'is-active' : '' %>" href="/expentionAdded">
+                <%- include('icon', { name: 'list' }) %> Expenses
+            </a>
+            <a class="nav-link <%= isActive('/add-expense') ? 'is-active' : '' %>" href="/add-expense">
+                <%- include('icon', { name: 'minus' }) %> Add expense
+            </a>
+        </nav>
+
+        <% if (acct.isMess) { %>
+            <nav class="nav-group" aria-label="Meals">
+                <p class="nav-group-title">Meals</p>
+                <a class="nav-link <%= isActive('/add-Meal') ? 'is-active' : '' %>" href="/add-Meal">
+                    <%- include('icon', { name: 'plus' }) %> Add meal
+                </a>
+                <a class="nav-link <%= isActive('/AddedMeal') ? 'is-active' : '' %>" href="/AddedMeal">
+                    <%- include('icon', { name: 'meal' }) %> Added meals
+                </a>
+                <a class="nav-link <%= isActive('/meal-billing') ? 'is-active' : '' %>" href="/meal-billing">
+                    <%- include('icon', { name: 'calculator' }) %> Meal billing
+                </a>
+                <a class="nav-link <%= isActive('/final-settlement') ? 'is-active' : '' %>" href="/final-settlement">
+                    <%- include('icon', { name: 'shield' }) %> Final settlement
+                </a>
+            </nav>
+        <% } %>
+
+        <nav class="nav-group" aria-label="Account">
+            <p class="nav-group-title">Account</p>
+            <% if (acct.isMess) { %>
+                <a class="nav-link <%= isActive('/settings/members') ? 'is-active' : '' %>" href="/settings/members">
+                    <%- include('icon', { name: 'users' }) %> Group members
+                </a>
+            <% } %>
+            <a class="nav-link <%= isActive('/setting') ? 'is-active' : '' %>" href="/setting">
+                <%- include('icon', { name: 'settings' }) %> Settings
+            </a>
+        </nav>
+
+        <div class="sidebar-foot">
+            <a class="nav-link" href="/logout">
+                <%- include('icon', { name: 'logout' }) %> Sign out
+            </a>
+        </div>
+    </aside>
+
+    <div class="sidebar-backdrop" aria-hidden="true"></div>
+
+    <div class="shell-main">
+        <header class="topbar">
+            <button class="topbar-menu" type="button" aria-label="Open navigation" aria-controls="app-sidebar">
+                <%- include('icon', { name: 'menu' }) %>
+            </button>
+            <div class="topbar-context">
+                <small><%= accountLabel %></small>
+                <strong><%= accountName %></strong>
+            </div>
+            <div class="topbar-right">
+                <a class="topbar-user" href="/setting" aria-label="Open settings for <%= displayName %>">
+                    <span class="avatar" aria-hidden="true"><%= initial %></span>
+                    <span class="topbar-user-copy">
+                        <strong><%= displayName %></strong>
+                        <small><%= acct.isMess ? (acct.groupId || 'Mess account') : 'Personal' %></small>
+                    </span>
+                </a>
+                <a class="btn btn-secondary btn-sm" href="/logout">Sign out</a>
+            </div>
+        </header>
+
+        <main class="page">

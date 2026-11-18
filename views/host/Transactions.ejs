@@ -1,128 +1,190 @@
+<%
+    const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const pageQuery = (page) => {
+        const params = new URLSearchParams();
+        params.set('month', month);
+        params.set('year', year);
+        if (filters.from) params.set('from', filters.from);
+        if (filters.to) params.set('to', filters.to);
+        if (filters.type) params.set('type', filters.type);
+        if (filters.search) params.set('search', filters.search);
+        if (page) params.set('page', page);
+        return '/transactions?' + params.toString();
+    };
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, startPage + 4);
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Transactions' }) %>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Ledger</p>
+        <h1 class="page-title">Transactions</h1>
+        <p class="page-sub"><%= periodLabel %> · <%= isGroupAccount ? 'all contributions and expenses for your mess' : 'all income and expenses in your account' %>.</p>
+    </div>
+    <div class="page-actions">
+        <%- include('../partials/monthFilter') %>
+        <a class="btn btn-secondary" href="/reports">
+            <%- include('../partials/icon', { name: 'chart' }) %>
+            Reports
+        </a>
+    </div>
+</div>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Transactions</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %>  
-    <div id="app">
-        <%- include('../partials/header') %>    
-        <!-- Main Content -->
-        <main class="main-content">
+<div class="grid-3" style="margin-bottom: 16px;">
+    <article class="stat is-income">
+        <div class="stat-top">
+            <span class="stat-label"><%= isGroupAccount ? 'Contributions' : 'Income' %></span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-up' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(totalIncome) %></p>
+        <p class="stat-note">Matching current filters</p>
+    </article>
 
-            <!-- Transactions Page -->
-            <div id="transactions-page" class="page">
-                <h2>Transactions</h2>
-                
+    <article class="stat is-expense">
+        <div class="stat-top">
+            <span class="stat-label">Expenses</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-down' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(totalExpense) %></p>
+        <p class="stat-note">Matching current filters</p>
+    </article>
 
-                <form method="GET" action="/transactions" class="search-filter">
-                    <div class="search-box">
-                        <input type="text" name="search" placeholder="Search transactions..."
-                            value="<%= filters.search || '' %>">
-                    </div>
+    <article class="stat is-violet">
+        <div class="stat-top">
+            <span class="stat-label">Net</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'wallet' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(net) %></p>
+        <p class="stat-note"><%= totalItems %> records found</p>
+    </article>
+</div>
 
-                    <div class="filters">
-                        <select name="type">
-                            <option value="">All Types</option>
-                            <option value="income" <%= filters.type==='income'?'selected':'' %>>Income</option>
-                            <option value="expense" <%= filters.type==='expense'?'selected':'' %>>Expense</option>
-                        </select>
+<section class="card">
+    <div class="card-head">
+        <div>
+            <h2>Filter transactions</h2>
+            <p>Combine a date range, type and search term.</p>
+        </div>
+        <% if (hasFilters) { %>
+            <a class="btn-link" href="/transactions?month=<%= month %>&year=<%= year %>">Clear filters</a>
+        <% } %>
+    </div>
+    <div class="card-body">
+        <form class="form" action="/transactions" method="GET">
+            <input type="hidden" name="month" value="<%= month %>">
+            <input type="hidden" name="year" value="<%= year %>">
 
-                        <input type="date" name="from" value="<%= filters.from || '' %>">
-                        <input type="date" name="to" value="<%= filters.to || '' %>">
-
-                        <button type="submit" class="btn btn-outline">Filter</button>
-                    </div>
-                </form>
-
-                <div class="card">
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Title</th>
-                                    <th>Category</th>
-                                    <th>Amount</th>
-                                    <th>Type</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            
-                            <tbody>
-                                <% if (transactions.length === 0) { %>
-                                    <tr>
-                                        <td colspan="6" style="text-align:center;">No transactions found</td>
-                                    </tr>
-                                <% } %>
-
-                                <% transactions.forEach(t => { %>
-                                <tr>
-                                    <td><%= t.date.toISOString().split('T')[0] %></td>
-                                    <td><%= t.title %></td>
-                                    <td><%= t.category %></td>
-                                    <td>₹ <%= t.amount %></td>
-                                    <td>
-                                        <% if (t.type === 'income') { %>
-                                            <span class="badge badge-income">Income</span>
-                                        <% } else { %>
-                                            <span class="badge badge-expense">Expense</span>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <% if (user.role === 'admin') { %>
-                                            <button class="btn btn-sm btn-danger">Delete</button>
-                                        <% } else { %>
-                                            —
-                                        <% } %>
-                                    </td>
-                                </tr>
-                                <% }) %>
-                            </tbody>
-
-                        </table>
-                    </div>
-                    
-
-
-                    <ul class="pagination">
-
-                        <% if (currentPage > 1) { %>
-                            <li>
-                                <a href="?page=<%= currentPage - 1 %>">Prev</a>
-                            </li>
-                        <% } %>
-
-                        <% for (let i = 1; i <= totalPages; i++) { %>
-                            <li>
-                                <a href="?page=<%= i %>" 
-                                class="<%= currentPage === i ? 'active' : '' %>">
-                                    <%= i %>
-                                </a>
-                            </li>
-                        <% } %>
-
-                        <% if (currentPage < totalPages) { %>
-                            <li>
-                                <a href="?page=<%= currentPage + 1 %>">Next</a>
-                            </li>
-                        <% } %>
-
-                    </ul>
-
+            <div class="form-row">
+                <div class="field">
+                    <label class="label" for="filter-from">From</label>
+                    <input class="input" id="filter-from" type="date" name="from" value="<%= filters.from %>">
+                </div>
+                <div class="field">
+                    <label class="label" for="filter-to">To</label>
+                    <input class="input" id="filter-to" type="date" name="to" value="<%= filters.to %>">
                 </div>
             </div>
-        </main>
+
+            <div class="form-row">
+                <div class="field">
+                    <label class="label" for="filter-type">Type</label>
+                    <select class="select" id="filter-type" name="type">
+                        <option value="" <%= !filters.type ? 'selected' : '' %>>All transactions</option>
+                        <option value="income" <%= filters.type === 'income' ? 'selected' : '' %>><%= isGroupAccount ? 'Contributions' : 'Income' %></option>
+                        <option value="expense" <%= filters.type === 'expense' ? 'selected' : '' %>>Expenses</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="label" for="filter-search">Search</label>
+                    <input class="input" id="filter-search" type="search" name="search"
+                           value="<%= filters.search %>"
+                           placeholder="<%= isGroupAccount ? 'Member or item name' : 'Source or item name' %>" maxlength="60">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" type="submit">
+                    <%- include('../partials/icon', { name: 'search' }) %>
+                    Apply filters
+                </button>
+            </div>
+        </form>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+</section>
+
+<section class="card">
+    <div class="card-head">
+        <div>
+            <h2>Transactions</h2>
+            <p>Page <%= currentPage %> of <%= totalPages %></p>
+        </div>
+        <span class="badge"><%= totalItems %> total</span>
+    </div>
+
+    <% if (!transactions.length) { %>
+        <div class="empty-state">
+            <span class="empty-icon"><%- include('../partials/icon', { name: 'search' }) %></span>
+            <h3>No transactions match</h3>
+            <p>Try another month, remove the date range, or clear the search term.</p>
+            <a class="btn btn-secondary btn-sm" href="/transactions?month=<%= month %>&year=<%= year %>">Reset filters</a>
+        </div>
+    <% } else { %>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th><%= isGroupAccount ? 'Member / item' : 'Source / item' %></th>
+                        <th>Type</th>
+                        <th class="is-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% transactions.forEach(tx => { %>
+                        <tr>
+                            <td>
+                                <%= new Date(tx.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                                <span class="table-sub"><%= new Date(tx.date).toLocaleDateString('en-IN', { weekday: 'long' }) %></span>
+                            </td>
+                            <td><strong><%= tx.title || (tx.type === 'income' ? 'Income' : 'Expense') %></strong></td>
+                            <td>
+                                <span class="badge <%= tx.type === 'income' ? 'badge-income' : 'badge-expense' %>">
+                                    <%= tx.type === 'income' ? (isGroupAccount ? 'Contribution' : 'Income') : 'Expense' %>
+                                </span>
+                            </td>
+                            <td class="is-right">
+                                <span class="table-amount <%= tx.type === 'income' ? 'is-income' : 'is-expense' %>">
+                                    <%= tx.type === 'income' ? '+' : '−' %><%= money(tx.amount) %>
+                                </span>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <span class="pagination-info">
+                Showing <%= (currentPage - 1) * 12 + 1 %>–<%= Math.min(currentPage * 12, totalItems) %> of <%= totalItems %>
+            </span>
+            <div class="pagination-links">
+                <a class="page-link <%= currentPage === 1 ? 'is-disabled' : '' %>" href="<%= pageQuery(currentPage - 1) %>" aria-label="Previous page">←</a>
+                <% if (startPage > 1) { %>
+                    <a class="page-link" href="<%= pageQuery(1) %>">1</a>
+                    <% if (startPage > 2) { %><span class="muted small">…</span><% } %>
+                <% } %>
+                <% for (let p = startPage; p <= endPage; p++) { %>
+                    <a class="page-link <%= p === currentPage ? 'is-active' : '' %>" href="<%= pageQuery(p) %>"><%= p %></a>
+                <% } %>
+                <% if (endPage < totalPages) { %>
+                    <% if (endPage < totalPages - 1) { %><span class="muted small">…</span><% } %>
+                    <a class="page-link" href="<%= pageQuery(totalPages) %>"><%= totalPages %></a>
+                <% } %>
+                <a class="page-link <%= currentPage === totalPages ? 'is-disabled' : '' %>" href="<%= pageQuery(currentPage + 1) %>" aria-label="Next page">→</a>
+            </div>
+        </div>
+    <% } %>
+</section>
+
+<%- include('../partials/layout-bottom') %>

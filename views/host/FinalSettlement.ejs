@@ -1,78 +1,132 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Final settlement' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Dashboard</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %> 
-    <div id="app">
-        <%- include('../partials/header') %>
-        <!-- Main Content -->
-        <main class="main-content">
-              
-            <%- include('../partials/monthFilter') %>      
-              
-                 
-
-            <div class="card">
-                <div class="table-container">
-                    <table >
-                        <thead>
-                            <tr>
-                                <th>Member</th>
-                                <th>Food</th>
-                                <th>Paid</th>
-                                <th>Payable</th>
-                                <th>Status</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% settlement.forEach(s => { %>
-                                <tr>
-                                    <td><%= s.name %></td>
-                                    <td><%= s.foodCount %></td>
-                                    <td>₹ <%= s.paidAmount %></td>
-                                    <td>₹ <%= s.payableAmount %></td>
-
-                                    <% if (s.status === 'RECEIVE') { %>
-                                        <td style="color: green; font-weight: bold;">GET</td>
-                                        <td style="color: green;">
-                                            ₹ <%= s.finalBalance %>
-                                        </td>
-
-                                    <% } else if (s.status === 'DUE') { %>
-                                        <td style="color: red; font-weight: bold;">DUE</td>
-                                        <td style="color: red;">
-                                            ₹ <%= Math.abs(s.finalBalance) %>
-                                        </td>
-
-                                    <% } else { %>
-                                        <td style="color: gray;">CLEAR</td>
-                                        <td>₹ 0</td>
-                                    <% } %>
-
-                                </tr>
-                            <% }) %>
-
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </main>
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Meals</p>
+        <h1 class="page-title">Final settlement</h1>
+        <p class="page-sub"><%= periodLabel %> · compare what each member paid with what their meals cost.</p>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+    <div class="page-actions">
+        <%- include('../partials/monthFilter') %>
+        <a class="btn btn-secondary" href="/meal-billing">
+            <%- include('../partials/icon', { name: 'calculator' }) %>
+            Meal billing
+        </a>
+    </div>
+</div>
 
+<div class="stat-grid" style="margin-bottom: 16px;">
+    <article class="stat is-expense">
+        <div class="stat-top">
+            <span class="stat-label">Total expenses</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'receipt' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(expenseTotal) %></p>
+        <p class="stat-note"><%= grandTotalFood %> meals · <%= money(perMealPrice) %> each</p>
+    </article>
 
+    <article class="stat is-income">
+        <div class="stat-top">
+            <span class="stat-label">Collected</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'wallet' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(totals.paid) %></p>
+        <p class="stat-note">Contributions recorded</p>
+    </article>
 
+    <article class="stat is-teal">
+        <div class="stat-top">
+            <span class="stat-label">To receive</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-up' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(totals.receive) %></p>
+        <p class="stat-note">Members in credit</p>
+    </article>
+
+    <article class="stat is-violet">
+        <div class="stat-top">
+            <span class="stat-label">Still due</span>
+            <span class="stat-icon"><%- include('../partials/icon', { name: 'arrow-down' }) %></span>
+        </div>
+        <p class="stat-value"><%= money(totals.due) %></p>
+        <p class="stat-note">Members who owe</p>
+    </article>
+</div>
+
+<section class="card">
+    <div class="card-head">
+        <div>
+            <h2>Member settlement</h2>
+            <p>Balance = paid − payable</p>
+        </div>
+        <span class="badge badge-info"><%= periodLabel %></span>
+    </div>
+
+    <% if (!settlement.length) { %>
+        <div class="empty-state">
+            <span class="empty-icon"><%- include('../partials/icon', { name: 'shield' }) %></span>
+            <h3>No settlement for <%= periodLabel %></h3>
+            <p>Meal counts and contributions are needed before a settlement can be calculated.</p>
+            <a class="btn btn-secondary btn-sm" href="/add-entry">Add money</a>
+        </div>
+    <% } else { %>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th class="is-right">Meals</th>
+                        <th class="is-right">Paid</th>
+                        <th class="is-right">Payable</th>
+                        <th class="is-right">Balance</th>
+                        <th class="is-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% settlement.forEach(row => { %>
+                        <tr>
+                            <td><strong><%= row.name %></strong></td>
+                            <td class="is-right"><%= row.foodCount %></td>
+                            <td class="is-right"><span class="table-amount is-income"><%= money(row.paidAmount) %></span></td>
+                            <td class="is-right"><span class="table-amount"><%= money(row.payableAmount) %></span></td>
+                            <td class="is-right">
+                                <span class="table-amount <%= row.finalBalance > 0 ? 'is-income' : (row.finalBalance < 0 ? 'is-expense' : '') %>">
+                                    <%= money(row.finalBalance) %>
+                                </span>
+                            </td>
+                            <td class="is-center">
+                                <% if (row.status === 'RECEIVE') { %>
+                                    <span class="badge badge-success">Receive</span>
+                                <% } else if (row.status === 'DUE') { %>
+                                    <span class="badge badge-expense">Due</span>
+                                <% } else { %>
+                                    <span class="badge">Clear</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Total</td>
+                        <td class="is-right"><%= grandTotalFood %></td>
+                        <td class="is-right"><%= money(totals.paid) %></td>
+                        <td class="is-right"><%= money(totals.payable) %></td>
+                        <td class="is-right"><%= money(totals.paid - totals.payable) %></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    <% } %>
+</section>
+
+<div class="alert alert-info mt-2">
+    <%- include('../partials/icon', { name: 'info' }) %>
+    <span>“Receive” means the member paid more than their share. “Due” means they still owe the mess. Values are calculated from this month’s real records.</span>
+</div>
+
+<%- include('../partials/layout-bottom') %>

@@ -1,0 +1,64 @@
+<%
+    const authTitle = typeof pageTitle !== 'undefined' ? pageTitle : 'Welcome';
+    const isWide = typeof wide !== 'undefined' && wide;
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#080d12">
+    <meta name="color-scheme" content="dark">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="CashBook — simple, clear accounting for messes and personal finances.">
+    <title><%= authTitle %> · CashBook</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js" defer></script>
+</head>
+<body class="auth-body">
+<div class="auth-shell">
+    <aside class="auth-aside">
+        <a class="auth-aside-brand" href="/login">
+            <span class="brand-mark"><%- include('icon', { name: 'book' }) %></span>
+            <span>CashBook</span>
+        </a>
+
+        <div class="auth-aside-copy">
+            <h2>Every rupee accounted for, every month in view.</h2>
+            <p>A calm, precise home for mess accounting and personal finances — built on the records you already keep.</p>
+
+            <div class="auth-features">
+                <div class="auth-feature">
+                    <span><%= '01' %></span>
+                    <div>
+                        <strong>Live, accurate balances</strong>
+                        Income, expenses and meals always add up from your real data.
+                    </div>
+                </div>
+                <div class="auth-feature">
+                    <span><%= '02' %></span>
+                    <div>
+                        <strong>Mess or personal</strong>
+                        One account type for shared group accounting, another for your own money.
+                    </div>
+                </div>
+                <div class="auth-feature">
+                    <span><%= '03' %></span>
+                    <div>
+                        <strong>Private by design</strong>
+                        Every group and personal record stays isolated behind your login.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="auth-aside-foot">CashBook · Mess &amp; personal accounting</p>
+    </aside>
+
+    <main class="auth-main">
+        <div class="auth-card <%= isWide ? 'is-wide' : '' %>">

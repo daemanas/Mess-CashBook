@@ -1,36 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create OTP | CashBook</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body class="auth-body">
+<%- include('../partials/auth-top', { pageTitle: 'Verify your email' }) %>
 
-<div class="auth-card">
-    <h1>CashBook</h1>
-    <p class="subtitle">Generate OTP for Registration</p>
-
-    <form action="/generateOTP" method="POST">
-        <input
-            type="email"
-            name="email"
-            placeholder="Enter Email"
-            required
-        >
-
-        <button type="submit">Generate OTP</button>
-    </form>
-
-
-    <p class="switch-text">
-        Already have OTP?
-        <a href="/register">Go to Register</a>
-        
-    </p>
+<div class="auth-card-head">
+    <a class="brand" href="/login">
+        <span class="brand-mark"><%- include('../partials/icon', { name: 'book' }) %></span>
+        <span>Cash<span style="color: var(--brand)">Book</span></span>
+    </a>
+    <h1>Verify your email</h1>
+    <p>We send a 6-digit code before an account can be created. It expires after 5 minutes.</p>
 </div>
 
+<div class="auth-panel">
+    <% if (locals.error) { %>
+        <div class="alert alert-error" role="alert" style="margin-bottom: 14px;">
+            <%- include('../partials/icon', { name: 'alert' }) %>
+            <span><%= error %></span>
+        </div>
+    <% } %>
 
-</body>
-</html>
+    <form class="form" action="/generateOTP" method="POST">
+        <div class="field">
+            <label class="label" for="otp-email">Email address</label>
+            <input class="input" id="otp-email" type="email" name="email"
+                   value="<%= locals.email || '' %>" placeholder="you@example.com"
+                   autocomplete="email" required autofocus>
+            <p class="hint">Use the same email you will sign in with. Codes are delivered by email only.</p>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-primary btn-block" type="submit">
+                <%- include('../partials/icon', { name: 'mail' }) %>
+                Send verification code
+            </button>
+        </div>
+    </form>
+
+    <div class="auth-divider">Already have a code?</div>
+
+    <a class="btn btn-secondary btn-block" href="/register">Continue to registration</a>
+
+    <div class="auth-links">
+        <span>Already registered?</span>
+        <a href="/login">Sign in instead</a>
+    </div>
+</div>
+
+<%- include('../partials/auth-bottom') %>

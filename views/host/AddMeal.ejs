@@ -1,84 +1,106 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const selectedName = (form && form.name) ? form.name : '';
+    const selectedCount = (form && form.food_count !== undefined) ? form.food_count : '';
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Add meal' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Add Meal</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %> 
-    <div id="app">
-        <%- include('../partials/header') %>
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Meals</p>
+        <h1 class="page-title">Record a meal count</h1>
+        <p class="page-sub">Meals are recorded for today only. Give each member the count they actually ate.</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-secondary" href="/AddedMeal">
+            <%- include('../partials/icon', { name: 'meal' }) %>
+            Added meals
+        </a>
+        <a class="btn btn-secondary" href="/meal-billing">
+            <%- include('../partials/icon', { name: 'calculator' }) %>
+            Meal billing
+        </a>
+    </div>
+</div>
 
-        <main class="main-content">
-            <div id="add-entry-page" class="page">
-                <h2>Add Meal</h2>
+<div class="split">
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2>Today’s count</h2>
+                <p><%= new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) %></p>
+            </div>
+        </div>
+        <div class="card-body">
+            <% if (locals.error) { %>
+                <div class="alert alert-error" role="alert" style="margin-bottom: 15px;">
+                    <%- include('../partials/icon', { name: 'alert' }) %>
+                    <span><%= error %></span>
+                </div>
+            <% } %>
 
-                <div class="card">
-                    <form action="/add-Meal" method="POST">
+            <% if (!members.length) { %>
+                <div class="alert alert-info" style="margin-bottom: 15px;">
+                    <%- include('../partials/icon', { name: 'info' }) %>
+                    <span>No member names exist yet. Add a money contribution first so a meal ledger can be created.</span>
+                </div>
+            <% } %>
 
-                        <!-- Action Buttons -->
-                        <div class="dashboard-actions">
-                            <a href="/add-entry" class="action-btn income-btn">
-                                ➕ Add Member
-                            </a>
-                            <a href="/add-expense" class="action-btn expense-btn">
-                                ➖ Add Expense
-                            </a>
-                            <a href="/add-Meal" class="action-btn income-btn">
-                                ➕ Add Meal
-                            </a>
-                        </div>
+            <form class="form" action="/add-Meal" method="POST">
+                <div class="field">
+                    <label class="label" for="meal-name">Member</label>
+                    <input class="input" id="meal-name" type="text" name="name"
+                           value="<%= selectedName %>" placeholder="Start typing a member name"
+                           list="meal-members" maxlength="80" autocomplete="off" required autofocus>
+                    <datalist id="meal-members">
+                        <% members.forEach(member => { %>
+                            <option value="<%= member %>"></option>
+                        <% }) %>
+                    </datalist>
+                    <p class="hint">Only members who already appear in money entries are listed.</p>
+                </div>
 
+                <div class="field">
+                    <label class="label" for="meal-count">
+                        Food count
+                        <span>Usually 1–4</span>
+                    </label>
+                    <input class="input" id="meal-count" type="number" name="food_count"
+                           value="<%= selectedCount %>" placeholder="e.g. 2"
+                           min="0.01" step="0.5" inputmode="decimal" required>
+                    <p class="hint">A member can have only one count per day. Use Added meals to remove or adjust an entry.</p>
+                </div>
 
-                        <!-- MEMBER SELECT -->
-                        <div class="form-group">
-                            <label>Select Member</label>
-                            <select name="name" required>
-                                <option value="">-- Select Member --</option>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">
+                        <%- include('../partials/icon', { name: 'check' }) %>
+                        Save today’s meal
+                    </button>
+                    <a class="btn btn-ghost" href="/AddedMeal">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </section>
 
-                                <% members.forEach(name => { %>
-                                    <option value="<%= name %>">
-                                        <%= name %>
-                                    </option>
-                                <% }) %>
-                            </select>
-
-                        </div>
-                        
-
-                        <!-- MEAL COUNT -->
-                        <div class="form-group">
-                            <label>Meal Count</label>
-                            <input
-                                type="number"
-                                name="food_count"
-                                placeholder="Enter Meal Count"
-                                required
-                            >
-                        </div>
-
-                        <!-- BUTTONS -->
-                        <div class="d-flex" style="gap: 1rem;">
-                            <button type="submit" class="btn btn-success">
-                                Save Meal
-                            </button>
-                            <button type="reset" class="btn btn-outline">
-                                Reset
-                            </button>
-                        </div>
-
-                    </form>
+    <section class="card">
+        <div class="card-head">
+            <h2>How meal costing works</h2>
+        </div>
+        <div class="card-body">
+            <ol class="stack-sm ordered-list" style="margin: 0;">
+                <li>Every meal count is summed for the selected month.</li>
+                <li>Monthly expenses are divided by those meals to get the per-meal price.</li>
+                <li>Each member’s payable amount is their count × per-meal price.</li>
+                <li>Final settlement compares what they paid with what they owe.</li>
+            </ol>
+            <div class="alert alert-info mt-2">
+                <%- include('../partials/icon', { name: 'info' }) %>
+                <div class="alert-copy">
+                    <span>Meal data belongs to this mess only and is never shared with personal accounts.</span>
+                    <span class="alert-code">Group ID · <%= account.groupId || '—' %></span>
                 </div>
             </div>
-        </main>
-    </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+        </div>
+    </section>
+</div>
+
+<%- include('../partials/layout-bottom') %>

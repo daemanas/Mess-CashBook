@@ -1,74 +1,42 @@
-<div class="datepicker-wrapper">
-    <button type="button" class="datepicker-trigger" id="dateTrigger">
-        <span>📅 <%= new Date(0, month-1).toLocaleString('en', { month: 'long' }) %> <%= year %></span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+<%
+    const activeMonth = (typeof month !== 'undefined' && month) ? month : (new Date().getMonth() + 1);
+    const activeYear = (typeof year !== 'undefined' && year) ? year : new Date().getFullYear();
+    const activeLabel = (typeof periodLabel !== 'undefined' && periodLabel)
+        ? periodLabel
+        : new Date(activeYear, activeMonth - 1).toLocaleString('en', { month: 'long', year: 'numeric' });
+    const thisYear = new Date().getFullYear();
+    const topYear = Math.max(thisYear, activeYear);
+    const bottomYear = Math.min(2020, activeYear);
+    const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+%>
+<div class="month-picker">
+    <button type="button" class="month-trigger" aria-haspopup="true" aria-expanded="false">
+        <%- include('icon', { name: 'calendar' }) %>
+        <span><%= activeLabel %></span>
+        <%- include('icon', { name: 'chevron-down' }) %>
     </button>
 
-    <div class="datepicker-modal" id="dateModal">
-        <form method="GET" action="/" id="filterForm">
-            <div class="datepicker-container">
-                <div class="year-header-pro">
-                    <select name="year" class="year-select-pro">
-                        <% for(let y = new Date().getFullYear(); y >= 2022; y--) { %>
-                            <option value="<%= y %>" <%= y === year ? 'selected' : '' %>><%= y %></option>
-                        <% } %>
-                    </select>
-                </div>
+    <div class="month-panel" hidden>
+        <div class="month-panel-head">
+            <strong class="small">Select period</strong>
+            <select class="month-year" aria-label="Choose year">
+                <% for (let y = topYear; y >= bottomYear; y--) { %>
+                    <option value="<%= y %>" <%= y === activeYear ? 'selected' : '' %>><%= y %></option>
+                <% } %>
+            </select>
+        </div>
 
-                <div class="months-grid-pro">
-                    <% const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; %>
-                    <% monthNames.forEach((name, index) => { %>
-                        <label class="month-unit <%= (index + 1) === month ? 'active' : '' %>">
-                            <input type="radio" name="month" value="<%= index + 1 %>" 
-                                   <%= (index + 1) === month ? 'checked' : '' %> 
-                                   onchange="submitForm()">
-                            <span><%= name %></span>
-                        </label>
-                    <% }) %>
-                </div>
+        <div class="month-grid">
+            <% shortMonths.forEach((name, index) => { %>
+                <button type="button"
+                        class="month-cell <%= (index + 1) === activeMonth ? 'is-active' : '' %>"
+                        data-month="<%= index + 1 %>"><%= name %></button>
+            <% }) %>
+        </div>
 
-                <div class="datepicker-footer-pro">
-                    <button type="button" class="btn-text" onclick="window.location.href='/'">Reset</button>
-                    <button type="button" class="btn-text" onclick="closeModal()">Close</button>
-                </div>
-            </div>
-        </form>
+        <div class="month-panel-foot">
+            <a href="#" class="month-reset">This month</a>
+            <span class="small muted">Filters this page</span>
+        </div>
     </div>
 </div>
-
-<script>
-    const trigger = document.getElementById('dateTrigger');
-    const modal = document.getElementById('dateModal');
-
-    // Toggle modal
-    trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-    });
-
-    // Outside click close
-    document.addEventListener('click', (e) => {
-        if (!modal.contains(e.target) && !trigger.contains(e.target)) {
-            modal.style.display = 'none';
-        }
-    });
-
-    // ✅ CURRENT PAGE-এই FILTER APPLY হবে
-    function submitForm() {
-        const form = document.getElementById('filterForm');
-
-        const year = form.querySelector('select[name="year"]').value;
-        const month = form.querySelector('input[name="month"]:checked').value;
-
-        const url = new URL(window.location.href);
-
-        url.searchParams.set('year', year);
-        url.searchParams.set('month', month);
-
-        window.location.href = url.toString();
-    }
-
-    function closeModal() {
-        modal.style.display = 'none';
-    }
-</script>

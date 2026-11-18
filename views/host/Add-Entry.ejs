@@ -1,109 +1,123 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const value = (key, fallback) => (form && form[key] !== undefined && form[key] !== null) ? form[key] : fallback;
+%>
+<%- include('../partials/layout-top', { pageTitle: isGroupAccount ? 'Add money' : 'Add income' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Entry</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <%- include('../partials/loader') %> 
-    <div id="app">
-        <%- include('../partials/header') %>
-
-        <main class="main-content">
-            <div id="add-entry-page" class="page">
-                <h2>Add Member Money</h2>
-
-                <div class="card">
-                    <form id="add-entry-form" action="/add-entry" method="POST">
-
-                        <!-- Quick Action Buttons -->
-                        <div class="dashboard-actions">
-                            <a href="/add-entry" class="action-btn income-btn">
-                                ➕ Add Member
-                            </a>
-                            <a href="/add-expense" class="action-btn expense-btn">
-                                ➖ Add Expense
-                            </a>
-                            <a href="/add-Meal" class="action-btn income-btn">
-                                ➕ Add Meal
-                            </a>
-                        </div>
-
-                        <!-- NAME FIELD (SMART LOGIC) -->
-                        <div class="form-group">
-                            <label for="entry_title">Name</label>
-
-                            <% if (title) { %>
-                                <!-- 🔵 Member card থেকে এলে -->
-                                <input
-                                    type="text"
-                                    class="entry_title"
-                                    id="entry_title"
-                                    name="entry_title"
-                                    value="<%= title %>"
-                                    readonly
-                                    required
-                                >
-                            <% } else { %>
-                                <!-- 🟢 Direct new entry -->
-                                <input
-                                    type="text"
-                                    class="entry_title"
-                                    id="entry_title"
-                                    name="entry_title"
-                                    placeholder="Enter Name"
-                                    required
-                                >
-                            <% } %>
-                        </div>
-
-                        <!-- AMOUNT -->
-                        <div class="form-group">
-                            <label for="entry_amount">Amount</label>
-                            <input
-                                type="number"
-                                class="entry_amount"
-                                id="entry_amount"
-                                name="entry_amount"
-                                placeholder="Enter amount"
-                                required
-                            >
-                        </div>
-
-                        <!-- DATE -->
-                        <div class="form-group">
-                            <label for="entry_date">Date</label>
-                            <input
-                                type="date"
-                                class="entry_date"
-                                id="entry_date"
-                                name="entry_date"
-                                required
-                            >
-                        </div>
-
-                        <!-- BUTTONS -->
-                        <div class="d-flex" style="gap: 1rem;">
-                            <button type="submit" class="btn btn-success">
-                                Save Entry
-                            </button>
-                            <button type="reset" class="btn btn-outline">
-                                Reset
-                            </button>
-                        </div>
-
-                    </form>
-                </div>
-            </div>
-        </main>
+<div class="page-head">
+    <div>
+        <p class="eyebrow"><%= isGroupAccount ? 'Contributions' : 'Income' %></p>
+        <h1 class="page-title"><%= isGroupAccount ? 'Record a money contribution' : 'Record income' %></h1>
+        <p class="page-sub">
+            <%= isGroupAccount
+                ? 'Add a payment made by a member. Amounts create the contribution ledger used by billing and settlement.'
+                : 'Add money you received. Each entry builds your monthly and yearly summary.' %>
+        </p>
     </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+    <div class="page-actions">
+        <a class="btn btn-secondary" href="/moneyAdded">
+            <%- include('../partials/icon', { name: 'list' }) %>
+            <%= isGroupAccount ? 'Money added' : 'Income list' %>
+        </a>
+    </div>
+</div>
+
+<div class="split">
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2>Entry details</h2>
+                <p>All values are saved against your authenticated account.</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <% if (locals.error) { %>
+                <div class="alert alert-error" role="alert" style="margin-bottom: 15px;">
+                    <%- include('../partials/icon', { name: 'alert' }) %>
+                    <span><%= error %></span>
+                </div>
+            <% } %>
+
+            <form class="form" action="/add-entry" method="POST">
+                <div class="field">
+                    <label class="label" for="entry-title">
+                        <%= isGroupAccount ? 'Member name' : 'Income source' %>
+                        <%- isGroupAccount ? '<span>Existing or new member</span>' : '<span>e.g. Salary, Freelance</span>' %>
+                    </label>
+                    <input class="input" id="entry-title" type="text" name="entry_title"
+                           value="<%= value('entry_title', title) %>"
+                           placeholder="<%= isGroupAccount ? 'e.g. rahim' : 'e.g. Salary' %>"
+                           list="<%= isGroupAccount ? 'member-list' : '' %>"
+                           maxlength="80" autocomplete="off" required autofocus>
+                    <% if (isGroupAccount) { %>
+                        <datalist id="member-list">
+                            <% members.forEach(member => { %>
+                                <option value="<%= member %>"></option>
+                            <% }) %>
+                        </datalist>
+                        <p class="hint">Member names are saved in lowercase so meal ledgers and settlements stay consistent.</p>
+                    <% } else { %>
+                        <p class="hint">A short label that makes this income easy to recognise later.</p>
+                    <% } %>
+                </div>
+
+                <div class="form-row">
+                    <div class="field">
+                        <label class="label" for="entry-amount">Amount (₹)</label>
+                        <input class="input" id="entry-amount" type="number" name="entry_amount"
+                               value="<%= value('entry_amount', '') %>"
+                               placeholder="0.00" min="0.01" step="0.01" inputmode="decimal" required>
+                    </div>
+
+                    <div class="field">
+                        <label class="label" for="entry-date">Date</label>
+                        <input class="input" id="entry-date" type="date" name="entry_date"
+                               value="<%= value('entry_date', entryDate) %>" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">
+                        <%- include('../partials/icon', { name: 'check' }) %>
+                        Save entry
+                    </button>
+                    <a class="btn btn-ghost" href="/">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-head">
+            <h2>Good to know</h2>
+        </div>
+        <div class="card-body">
+            <ul class="list" style="margin: -8px -20px -20px;">
+                <li class="list-item">
+                    <span class="list-indicator"><%- include('../partials/icon', { name: 'shield' }) %></span>
+                    <div class="list-copy">
+                        <strong>Saved to your account only</strong>
+                        <span><%= isGroupAccount ? 'Filtered by your Group ID' : 'Filtered by your user ID' %></span>
+                    </div>
+                </li>
+                <li class="list-item">
+                    <span class="list-indicator"><%- include('../partials/icon', { name: 'calendar' }) %></span>
+                    <div class="list-copy">
+                        <strong>Month and year follow the date</strong>
+                        <span>Use the real payment date for accurate reports</span>
+                    </div>
+                </li>
+                <% if (isGroupAccount) { %>
+                    <li class="list-item">
+                        <span class="list-indicator is-meal"><%- include('../partials/icon', { name: 'meal' }) %></span>
+                        <div class="list-copy">
+                            <strong>Meal ledger created automatically</strong>
+                            <span>New member names get an empty meal register</span>
+                        </div>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </section>
+</div>
+
+<%- include('../partials/layout-bottom') %>

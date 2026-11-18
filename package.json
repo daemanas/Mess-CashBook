@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "backup": "node scripts/backup.js",
+    "verify": "node scripts/verify.js",
+    "migrate:mess-name": "node scripts/migrate-mess-name.js"
   },
   "engines": {
     "node": "20.x"

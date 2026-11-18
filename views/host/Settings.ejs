@@ -1,88 +1,141 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%
+    const money = (value) => '₹' + Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const roleLabel = profile.role === 'admin' ? 'Mess admin' : (profile.role === 'member' ? 'Mess member' : 'Personal');
+    const netLifetime = Number(lifetimeIncome || 0) - Number(lifetimeExpense || 0);
+%>
+<%- include('../partials/layout-top', { pageTitle: 'Settings' }) %>
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0a74da">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>CashBook || Settings</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>   
-    <%- include('../partials/loader') %>  
-    <div id="app">
-        <%- include('../partials/header') %>    
-        <!-- Main Content -->
-        <main class="main-content">
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Account</p>
+        <h1 class="page-title">Settings</h1>
+        <p class="page-sub">Your profile, account type and lifetime activity at a glance.</p>
+    </div>
+    <div class="page-actions">
+        <% if (isGroupAccount) { %>
+            <a class="btn btn-secondary" href="/settings/members">
+                <%- include('../partials/icon', { name: 'users' }) %>
+                Group members
+            </a>
+        <% } %>
+    </div>
+</div>
 
-            <!-- Settings Page -->
-            <div id="settings-page" class="page">
-                <h2>Settings</h2>
-                <div class="card">
-        
-                    <h3>User Profile</h3>
-                    <form>
-                        <div class="form-group">
-                            <label for="profile-name">Full Name</label>
-                            <input
-                                type="text"
-                                id="profile-name"
-                                value="<%= user.name %>"
-                                readonly
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label for="profile-email">Email</label>
-                            <input
-                                type="email"
-                                id="profile-email"
-                                value="<%= user.email %>"
-                                readonly
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <% if (user.role === 'admin') { %>
-                            <p><strong>Your Group ID:</strong> <%= user.groupId %></p>
-                            <% } %>
-                        </div>
-
-                        
-
-                        <div class="form-group">
-                            <label>Role</label>
-                            <input type="text" value="<%= user.role %>" readonly>
-                        </div>
-
-                        <div class="card">
-                            <h3>Group Management</h3>
-
-                            <a href="/settings/members" class="btn btn-outline">
-                                👥 View All Members
-                            </a>
-                        </div>
-
-                        
-                        
-                    </form>
+<div class="grid-2 grid-top">
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2>Profile</h2>
+                <p>Details are managed when you register.</p>
+            </div>
+            <span class="badge <%= isGroupAccount ? (profile.role === 'admin' ? 'badge-violet' : 'badge-info') : 'badge-success' %>">
+                <%= roleLabel %>
+            </span>
+        </div>
+        <div class="card-body">
+            <dl class="detail-list">
+                <div class="detail-row">
+                    <dt>Full name</dt>
+                    <dd><%= profile.name || '—' %></dd>
                 </div>
-                 <!-- Logout Section -->
-                <div class="card" style="margin-top: 2rem;">
-                    <h3>Account</h3>
+                <div class="detail-row">
+                    <dt>Email</dt>
+                    <dd><%= profile.email || '—' %></dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Account type</dt>
+                    <dd><%= isGroupAccount ? 'Mess / group' : 'Personal' %></dd>
+                </div>
+                <% if (isGroupAccount) { %>
+                    <div class="detail-row">
+                        <dt>Mess name</dt>
+                        <dd><%= profile.messName || '—' %></dd>
+                    </div>
+                    <div class="detail-row">
+                        <dt>Group ID</dt>
+                        <dd><%= profile.groupId %></dd>
+                    </div>
+                    <div class="detail-row">
+                        <dt>Role</dt>
+                        <dd><%= roleLabel %></dd>
+                    </div>
+                <% } %>
+            </dl>
+        </div>
+    </section>
 
-                    <form action="/logout" method="GET">
-                        <button type="submit" class="btn btn-danger" style="width:100%;">
-                            Logout
-                        </button>
-                    </form>
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2>Lifetime activity</h2>
+                <p>Totals from all your recorded months.</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <dl class="detail-list">
+                <div class="detail-row">
+                    <dt><%= isGroupAccount ? 'Total contributions' : 'Total income' %></dt>
+                    <dd><%= money(lifetimeIncome) %></dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Total expenses</dt>
+                    <dd><%= money(lifetimeExpense) %></dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Net balance</dt>
+                    <dd><%= money(netLifetime) %></dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Income records</dt>
+                    <dd><%= incomeCount %></dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Expense records</dt>
+                    <dd><%= expenseCount %></dd>
+                </div>
+                <% if (isGroupAccount) { %>
+                    <div class="detail-row">
+                        <dt>Group members</dt>
+                        <dd><%= memberCount %></dd>
+                    </div>
+                <% } %>
+            </dl>
+        </div>
+    </section>
+</div>
+
+<div class="<%= isGroupAccount ? 'grid-2' : '' %> mt-2">
+    <% if (isGroupAccount) { %>
+        <section class="card">
+            <div class="card-head">
+                <div>
+                    <h2>Group management</h2>
+                    <p>Admins can promote members or remove logins.</p>
                 </div>
             </div>
-        </main>
-    </div>
-<%- include('../partials/pwa') %>
-</body>
-</html>
+            <div class="card-body">
+                <a class="btn btn-secondary btn-block" href="/settings/members">
+                    <%- include('../partials/icon', { name: 'users' }) %>
+                    View all members
+                </a>
+            </div>
+        </section>
+    <% } %>
+
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2>Session</h2>
+                <p>Sign out on this device.</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <a class="btn btn-danger btn-block" href="/logout">
+                <%- include('../partials/icon', { name: 'logout' }) %>
+                Sign out
+            </a>
+        </div>
+    </section>
+</div>
+
+<%- include('../partials/layout-bottom') %>
