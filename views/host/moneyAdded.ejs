@@ -75,7 +75,7 @@
                             <%- include('../partials/icon', { name: 'plus' }) %>
                             Add
                         </a>
-                        <% if (canDelete) { %>
+                        <!-- <% if (canDelete) { %>
                             <form action="/money-delete-group/<%= encodeURIComponent(group.title) %>" method="POST"
                                   data-confirm="Delete every <%= group.title %> entry for this month? This cannot be undone."
                                   data-confirm-label="Delete card">
@@ -84,7 +84,7 @@
                                     Delete card
                                 </button>
                             </form>
-                        <% } %>
+                        <% } %> -->
                     </div>
                 </div>
 

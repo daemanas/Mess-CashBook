@@ -88,7 +88,7 @@
                     </div>
                     <div class="page-actions">
                         <span class="badge badge-warning"><%= user.userTotal %> meals</span>
-                        <% if (isAdmin) { %>
+                        <!-- <% if (isAdmin) { %>
                             <form action="/meal-delete-user/<%= user._id %>" method="POST"
                                   data-confirm="Delete the entire meal ledger for <%= user.name %>? Recorded counts cannot be restored."
                                   data-confirm-label="Delete ledger">
@@ -97,7 +97,7 @@
                                     Delete ledger
                                 </button>
                             </form>
-                        <% } %>
+                        <% } %> -->
                     </div>
                 </div>
 
